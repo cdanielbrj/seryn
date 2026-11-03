@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Seryn.Server/Seryn.Server.csproj" />
+  <Project Path="tests/Seryn.Tests/Seryn.Tests.csproj" />
+</Solution>

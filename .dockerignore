@@ -1,0 +1,13 @@
+.git
+.env
+.data
+artifacts
+**/node_modules
+**/bin
+**/obj
+**/dist
+**/wwwroot
+**/test-results
+**/playwright-report
+**/*.sqlite*
+design

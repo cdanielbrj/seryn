@@ -1,0 +1,25 @@
+services:
+  seryn:
+    image: seryn:local
+    build: .
+    ports:
+      - "${SERYN_BIND_ADDRESS:-127.0.0.1}:${SERYN_PORT:-8080}:8080"
+    volumes:
+      - seryn-data:/data
+    environment:
+      SERYN_ADMIN_USER: "${SERYN_ADMIN_USER:-admin}"
+      SERYN_ADMIN_PASSWORD: "${SERYN_ADMIN_PASSWORD:-}"
+      SERYN_ADMIN_PASSWORD_FILE: "${SERYN_ADMIN_PASSWORD_FILE:-}"
+      Seryn__RequireHttps: "${SERYN_REQUIRE_HTTPS:-false}"
+      Seryn__TrustedProxies__0: "${SERYN_TRUSTED_PROXY:-127.0.0.1}"
+      AllowedHosts: "${SERYN_ALLOWED_HOSTS:-localhost;127.0.0.1}"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  seryn-data:
