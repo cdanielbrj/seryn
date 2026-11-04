@@ -1,11 +1,11 @@
 export class ApiError extends Error {
-  constructor(message: string, public status: number) { super(message) }
+  constructor(message: string, public status: number, public errors: Record<string, string[]> = {}) { super(message) }
 }
 
 async function parse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const problem = await response.json().catch(() => ({})) as { title?: string }
-    throw new ApiError(problem.title ?? 'Não foi possível concluir. Tente novamente.', response.status)
+    const problem = await response.json().catch(() => ({})) as { title?: string; errors?: Record<string, string[]> }
+    throw new ApiError(problem.title ?? 'Não foi possível concluir. Tente novamente.', response.status, problem.errors)
   }
   return response.status === 204 ? undefined as T : response.json() as Promise<T>
 }

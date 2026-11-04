@@ -7,6 +7,8 @@ import { Brand } from './components/Brand'
 import { Dashboard } from './components/Dashboard'
 import { ClassificationsPage } from './components/ClassificationsPage'
 import { CategoriesPage } from './components/CategoriesPage'
+import { RecordFormPage } from './components/RecordFormPage'
+import { RecordsPage } from './components/RecordsPage'
 import { ThemeControl } from './components/ThemeControl'
 import { Button } from './components/ui/button'
 
@@ -63,7 +65,8 @@ export function App() {
 function Shell({ username, onLogout }: { username: string; onLogout: () => void }) {
   const location = useLocation()
   useEffect(() => {
-    const current = navigation.find(item => item.path === location.pathname)
+    const current = navigation.find(item => item.path === location.pathname) ??
+      (location.pathname.startsWith('/registros/') ? navigation.find(item => item.path === '/registros') : undefined)
     document.title = `Seryn — ${current?.label ?? 'Página não encontrada'}`
     document.querySelector<HTMLElement>('main h1')?.focus()
     window.scrollTo(0, 0)
@@ -74,7 +77,9 @@ function Shell({ username, onLogout }: { username: string; onLogout: () => void 
     <div className="workspace"><header className="mobile-header"><Brand /><ThemeControl /></header>
       <main id="conteudo" className="main-content"><Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/registros" element={<Unavailable title="Registros" icon={CalendarDays} description="Suas entradas e saídas, organizadas em um só lugar." detail="O cadastro de registros estará disponível na etapa de dados e recorrências. Ainda não há registros nesta instalação." />} />
+        <Route path="/registros" element={<RecordsPage />} />
+        <Route path="/registros/novo" element={<RecordFormPage />} />
+        <Route path="/registros/:id/editar" element={<RecordFormPage />} />
         <Route path="/pagamentos" element={<ClassificationsPage key="payment-methods" kind="payment-methods" />} />
         <Route path="/categorias" element={<CategoriesPage />} />
         <Route path="/tipos" element={<ClassificationsPage key="types" kind="types" />} />

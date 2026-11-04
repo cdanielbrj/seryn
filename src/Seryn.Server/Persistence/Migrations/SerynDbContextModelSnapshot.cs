@@ -52,6 +52,75 @@ namespace Seryn.Server.Persistence.Migrations
                     b.ToTable("financial_categories", (string)null);
                 });
 
+            modelBuilder.Entity("Seryn.Server.Persistence.FinancialRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("AmountCents")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("OccurrenceCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("PaymentMethodId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Recurrence")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StartMonth")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StartYear")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("TypeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("UpdatedAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("PaymentMethodId");
+
+                    b.HasIndex("TypeId");
+
+                    b.HasIndex("StartYear", "StartMonth");
+
+                    b.ToTable("financial_records", null, t =>
+                        {
+                            t.HasCheckConstraint("record_amount_positive", "AmountCents > 0");
+
+                            t.HasCheckConstraint("record_occurrence_count", "OccurrenceCount IS NULL OR OccurrenceCount >= 1");
+
+                            t.HasCheckConstraint("record_start_month", "StartMonth >= 1 AND StartMonth <= 12");
+
+                            t.HasCheckConstraint("record_start_year", "StartYear >= 1 AND StartYear <= 9999");
+                        });
+                });
+
             modelBuilder.Entity("Seryn.Server.Persistence.FinancialType", b =>
                 {
                     b.Property<Guid>("Id")
@@ -149,6 +218,32 @@ namespace Seryn.Server.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("Seryn.Server.Persistence.FinancialRecord", b =>
+                {
+                    b.HasOne("Seryn.Server.Persistence.FinancialCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Seryn.Server.Persistence.PaymentMethod", "PaymentMethod")
+                        .WithMany()
+                        .HasForeignKey("PaymentMethodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Seryn.Server.Persistence.FinancialType", "Type")
+                        .WithMany()
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("PaymentMethod");
+
+                    b.Navigation("Type");
                 });
 
             modelBuilder.Entity("Seryn.Server.Persistence.FinancialCategory", b =>

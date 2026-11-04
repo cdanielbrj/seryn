@@ -39,11 +39,11 @@ public static class ClassificationEndpoints
         ClassificationFailure.None when created => Results.Created($"./{GetId(result.Item!)}", result.Item),
         ClassificationFailure.None => Results.Ok(result.Item),
         ClassificationFailure.InvalidName => Results.ValidationProblem(new Dictionary<string, string[]>
-            { ["nome"] = ["Informe um nome entre 1 e 80 caracteres."] }),
+        { ["nome"] = ["Informe um nome entre 1 e 80 caracteres."] }),
         ClassificationFailure.Duplicate => Results.Problem(statusCode: 409, title: "Já existe uma classificação com esse nome neste nível."),
         ClassificationFailure.NotFound => Results.Problem(statusCode: 404, title: "Classificação não encontrada."),
         ClassificationFailure.InvalidParent => Results.ValidationProblem(new Dictionary<string, string[]>
-            { ["categoriaPaiId"] = ["Escolha uma categoria principal válida."] }),
+        { ["categoriaPaiId"] = ["Escolha uma categoria principal válida."] }),
         _ => Results.Problem(statusCode: 500, title: "Não foi possível concluir a operação.")
     };
 
@@ -59,6 +59,7 @@ public static class ClassificationEndpoints
         ClassificationFailure.None => Results.NoContent(),
         ClassificationFailure.NotFound => Results.Problem(statusCode: 404, title: "Classificação não encontrada."),
         ClassificationFailure.HasChildren => Results.Problem(statusCode: 409, title: "Mova ou exclua as subcategorias antes de excluir esta categoria."),
+        ClassificationFailure.InUse => Results.Problem(statusCode: 409, title: "Esta classificação está sendo usada por um ou mais registros."),
         _ => Results.Problem(statusCode: 500, title: "Não foi possível concluir a operação.")
     };
 }

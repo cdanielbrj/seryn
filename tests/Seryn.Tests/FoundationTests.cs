@@ -74,6 +74,8 @@ public sealed class FoundationTests : IDisposable
         Assert.Contains("20261103191308_Foundation", migrations);
         Assert.Contains("20261103225105_Classifications", migrations);
         Assert.Contains("20261103232541_CategoryHierarchy", migrations);
+        Assert.Contains("20261104001458_PaymentMethods", migrations);
+        Assert.Contains(migrations, migration => migration.EndsWith("_FinancialRecords"));
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/v1/auth/login", new { username = "daniel", password = Password })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await Post(client, "login", new { username = "daniel", password = Password })).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await Post(client, "setup", new { username = "intruder", password = Password })).StatusCode);
@@ -172,7 +174,7 @@ public sealed class FoundationTests : IDisposable
         Assert.Equal("daniel", (await client.GetFromJsonAsync<SessionResponse>("/api/v1/auth/session"))!.Username);
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/v1/auth/logout", new { })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/foundation")).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/v1/records")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/records")).StatusCode);
         var openapi = await client.GetStringAsync("/api/v1/openapi/v1.json");
         Assert.Contains("/api/v1/auth/login", openapi);
         Assert.Equal(HttpStatusCode.NoContent, (await Post(client, "logout", new { })).StatusCode);

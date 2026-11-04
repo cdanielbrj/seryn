@@ -1,8 +1,8 @@
 # Seryn
 
-Seryn is a self-hosted planner for expected income and expenses. The current release implements **Phase 1 only** from the [product specification](docs/SERYN_SPEC.md): the application foundation, local authentication, the approved v2 desktop/mobile shell, themes, and PWA metadata.
+Seryn is a self-hosted planner for expected income and expenses. Phase 1 is complete and Phase 2 is in progress, following the [product specification](docs/SERYN_SPEC.md).
 
-Available today: secure administrator provisioning, login/logout, persistent local sessions, EF Core migrations on SQLite, the empty-state dashboard, period navigation, light/dark themes, and an installable web-app manifest. Record management, financial projections, import/export, and in-app backup are intentionally reserved for later phases.
+Available today: secure administrator provisioning, login/logout, persistent local sessions, EF Core migrations on SQLite, editable types/categories/payment methods, financial-record CRUD, the approved responsive shell, period navigation, light/dark themes, and an installable web-app manifest. Projection calculations and the data-backed dashboard are the next Phase 2 increments. Import/export and in-app backup remain reserved for Phase 3.
 
 Current version: **0.1.0**.
 
@@ -207,9 +207,11 @@ Chromium desktop and WebKit with an iPhone viewport exercise login, themes, navi
 - `GET /api/v1/auth/status` and `GET /api/v1/auth/csrf`: public and contain no personal data.
 - `POST /api/v1/auth/login`: CSRF-protected and rate-limited. No initial account-creation endpoint exists.
 - `GET /api/v1/auth/session`, `POST /api/v1/auth/logout`, and `GET /api/v1/foundation`: authenticated.
+- `GET/POST /api/v1/records` and `GET/PATCH/DELETE /api/v1/records/{id}`: authenticated record CRUD.
+- `/api/v1/types`, `/api/v1/categories`, and `/api/v1/payment-methods`: authenticated classification CRUD.
 - `GET /api/v1/openapi/v1.json`: server-generated OpenAPI, authenticated.
 
-Mutating calls send the session cookie and the `X-CSRF-TOKEN` value obtained from `/auth/csrf`. Errors use Problem Details. Reserved financial paths return 401 without a session and 404 with a session because their handlers do not exist in Phase 1.
+Mutating calls send the session cookie and the `X-CSRF-TOKEN` value obtained from `/auth/csrf`. Errors use Problem Details. All financial paths return 401 without a session. Projection, import/export, and backup handlers remain unavailable until their corresponding increments.
 
 ## Releases
 
@@ -222,4 +224,4 @@ ghcr.io/<owner>/<repository>:<commit-sha>
 
 When a commit changes `<Version>`, the successful workflow creates one annotated `vX.Y.Z` Git tag. Existing tags are never moved. The workflow does not create a GitHub Release; that remains a separate explicit action. The initial successful `main` build creates `v0.1.0` because the previous revision has no version file.
 
-Implementation decisions are recorded in [ADR-002](docs/ADR-002-PHASE-1.md). The canonical financial examples will be implemented and tested with the projection engine in **Phase 2**. No later phase is declared complete.
+Implementation decisions are recorded in [ADR-002](docs/ADR-002-PHASE-1.md) and [ADR-003](docs/ADR-003-PHASE-2-RECORDS.md). The canonical financial examples will be implemented and tested with the projection engine in **Phase 2**. No later phase is declared complete.

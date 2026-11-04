@@ -11,7 +11,8 @@ public enum ClassificationFailure
     Duplicate,
     NotFound,
     InvalidParent,
-    HasChildren
+    HasChildren,
+    InUse
 }
 
 public sealed record ClassificationItem(Guid Id, string Nome);
@@ -69,8 +70,11 @@ public sealed class ClassificationService(SerynDbContext db)
 
         var entity = new FinancialCategory
         {
-            Id = Guid.NewGuid(), Name = prepared.Value.Name, NormalizedName = prepared.Value.Normalized,
-            ParentId = parentId, ScopeKey = scope
+            Id = Guid.NewGuid(),
+            Name = prepared.Value.Name,
+            NormalizedName = prepared.Value.Normalized,
+            ParentId = parentId,
+            ScopeKey = scope
         };
         db.Add(entity);
         try { await db.SaveChangesAsync(); }
@@ -140,6 +144,9 @@ public sealed class ClassificationService(SerynDbContext db)
             return ClassificationFailure.NotFound;
         if (await db.FinancialCategories.AnyAsync(x => x.ParentId == id))
             return ClassificationFailure.HasChildren;
+        var records = await db.FinancialRecords.Where(x => x.CategoryId == id).ToListAsync();
+        foreach (var record in records)
+            record.CategoryId = entity.ParentId;
         db.Remove(entity);
         await db.SaveChangesAsync();
         return ClassificationFailure.None;
@@ -150,6 +157,11 @@ public sealed class ClassificationService(SerynDbContext db)
         var entity = await db.Set<T>().SingleOrDefaultAsync(x => x.Id == id);
         if (entity is null)
             return ClassificationFailure.NotFound;
+        var inUse = typeof(T) == typeof(FinancialType)
+            ? await db.FinancialRecords.AnyAsync(x => x.TypeId == id)
+            : typeof(T) == typeof(PaymentMethod) && await db.FinancialRecords.AnyAsync(x => x.PaymentMethodId == id);
+        if (inUse)
+            return ClassificationFailure.InUse;
         db.Remove(entity);
         await db.SaveChangesAsync();
         return ClassificationFailure.None;
