@@ -10,16 +10,22 @@ async function parse<T>(response: Response): Promise<T> {
   return response.status === 204 ? undefined as T : response.json() as Promise<T>
 }
 
+async function mutate<T>(method: 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown): Promise<T> {
+  const { token } = await get<{ token: string }>('/auth/csrf')
+  return parse<T>(await fetch(`/api/v1${path}`, {
+    method, credentials: 'same-origin', cache: 'no-store',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  }))
+}
+
 export async function get<T>(path: string): Promise<T> {
   return parse<T>(await fetch(`/api/v1${path}`, { credentials: 'same-origin', cache: 'no-store' }))
 }
 
 export async function post<T>(path: string, body?: unknown): Promise<T> {
-  // Fetch a token for the current identity: tokens issued before login cannot be reused after it.
-  const { token } = await get<{ token: string }>('/auth/csrf')
-  return parse<T>(await fetch(`/api/v1${path}`, {
-    method: 'POST', credentials: 'same-origin', cache: 'no-store',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
-    body: JSON.stringify(body ?? {}),
-  }))
+  return mutate<T>('POST', path, body ?? {})
 }
+
+export async function patch<T>(path: string, body: unknown): Promise<T> { return mutate<T>('PATCH', path, body) }
+export async function remove(path: string): Promise<void> { return mutate<void>('DELETE', path) }

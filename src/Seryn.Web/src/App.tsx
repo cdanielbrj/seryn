@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
-import { ArrowLeftRight, CalendarDays, ChevronRight, Home, Layers, LogOut, Settings, Tag, type LucideIcon } from 'lucide-react'
+import { ArrowLeftRight, CalendarDays, ChevronRight, CreditCard, Home, Layers, LogOut, Settings, Tag, type LucideIcon } from 'lucide-react'
 import { ApiError, get, post } from './lib/api'
 import { AuthScreen } from './components/AuthScreen'
 import { Brand } from './components/Brand'
 import { Dashboard } from './components/Dashboard'
+import { ClassificationsPage } from './components/ClassificationsPage'
+import { CategoriesPage } from './components/CategoriesPage'
 import { ThemeControl } from './components/ThemeControl'
 import { Button } from './components/ui/button'
 
 const navigation: { path: string; label: string; icon: LucideIcon; mobile?: boolean }[] = [
   { path: '/', label: 'Visão Geral', icon: Home, mobile: true },
   { path: '/registros', label: 'Registros', icon: CalendarDays, mobile: true },
+  { path: '/pagamentos', label: 'Pagamentos', icon: CreditCard },
   { path: '/categorias', label: 'Categorias', icon: Layers, mobile: true },
   { path: '/tipos', label: 'Tipos', icon: Tag },
   { path: '/importar-exportar', label: 'Importar / Exportar', icon: ArrowLeftRight },
@@ -72,8 +75,9 @@ function Shell({ username, onLogout }: { username: string; onLogout: () => void 
       <main id="conteudo" className="main-content"><Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/registros" element={<Unavailable title="Registros" icon={CalendarDays} description="Suas entradas e saídas, organizadas em um só lugar." detail="O cadastro de registros estará disponível na etapa de dados e recorrências. Ainda não há registros nesta instalação." />} />
-        <Route path="/categorias" element={<Unavailable title="Categorias" icon={Layers} description="Uma visão organizada do seu planejamento." detail="A criação e edição de categorias estarão disponíveis junto com o cadastro de registros." />} />
-        <Route path="/tipos" element={<Unavailable title="Tipos" icon={Tag} description="Classificações que se adaptam ao seu planejamento." detail="Os tipos poderão ser personalizados na etapa de dados e recorrências, sem alterar o comportamento financeiro dos registros." />} />
+        <Route path="/pagamentos" element={<ClassificationsPage key="payment-methods" kind="payment-methods" />} />
+        <Route path="/categorias" element={<CategoriesPage />} />
+        <Route path="/tipos" element={<ClassificationsPage key="types" kind="types" />} />
         <Route path="/importar-exportar" element={<Unavailable title="Importar / Exportar" icon={ArrowLeftRight} description="Seus registros, com portabilidade." detail="A importação e exportação de registros originais em CSV e Excel serão disponibilizadas na etapa de portabilidade." />} />
         <Route path="/ajustes" element={<Preferences username={username} onLogout={onLogout} />} />
         <Route path="*" element={<Unavailable title="Página não encontrada" icon={Home} description="Este endereço não existe na Seryn." detail="Use a navegação para voltar ao seu planejamento." />} />
@@ -106,7 +110,7 @@ function Preferences({ username, onLogout }: { username: string; onLogout: () =>
   return <><header className="page-heading"><h1 tabIndex={-1}>Ajustes</h1><p>Seu espaço, do seu jeito.</p></header><div className="settings-grid">
     <section className="panel"><h2>Aparência</h2><p className="muted">Escolha como a Seryn aparece neste dispositivo.</p><ThemeControl expanded /></section>
     <section className="panel"><h2>Seu acesso</h2><p className="muted">Conectado como <strong>{username}</strong>.</p><Button variant="outline" onClick={() => { void logout() }} disabled={busy}><LogOut size={18} aria-hidden="true" />{busy ? 'Saindo…' : 'Sair da Seryn'}</Button>{error && <p className="form-error" role="alert">{error}</p>}</section>
-    <section className="panel"><h2>Organização e portabilidade</h2><div className="settings-links"><Link to="/tipos"><Tag aria-hidden="true" />Tipos<ChevronRight aria-hidden="true" /></Link><Link to="/importar-exportar"><ArrowLeftRight aria-hidden="true" />Importar / Exportar<ChevronRight aria-hidden="true" /></Link></div></section>
+    <section className="panel"><h2>Organização e portabilidade</h2><div className="settings-links"><Link to="/tipos"><Tag aria-hidden="true" />Tipos<ChevronRight aria-hidden="true" /></Link><Link to="/pagamentos"><CreditCard aria-hidden="true" />Pagamentos<ChevronRight aria-hidden="true" /></Link><Link to="/importar-exportar"><ArrowLeftRight aria-hidden="true" />Importar / Exportar<ChevronRight aria-hidden="true" /></Link></div></section>
     <section className="panel"><h2>Sobre esta versão</h2><p className="muted">Fundação da Seryn: acesso seguro, navegação e temas. O cadastro de dados e as projeções chegam na próxima etapa.</p><p className="muted">Todos os valores da Seryn são previsões de planejamento.</p></section>
   </div></>
 }

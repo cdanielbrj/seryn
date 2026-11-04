@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Seryn.Server.Api;
 using Seryn.Server.Auth;
+using Seryn.Server.Classifications;
 using Seryn.Server.Persistence;
 
 if (args.Contains("--healthcheck"))
@@ -39,6 +40,7 @@ builder.Services.AddScoped<AdminProvisioner>();
 builder.Services.AddSingleton<AuthGate>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ClassificationService>();
 builder.Services.AddScoped<IPasswordHasher<LocalUser>, PasswordHasher<LocalUser>>();
 builder.Services.Configure<PasswordHasherOptions>(options => options.IterationCount = 210_000);
 builder.Services.AddProblemDetails();
@@ -146,7 +148,8 @@ app.MapGet("/health", async (SerynDbContext db) =>
     await db.Database.CanConnectAsync() ? Results.Ok(new { status = "ok" }) : Results.StatusCode(503)).AllowAnonymous().ExcludeFromDescription();
 var api = app.MapGroup("/api/v1").RequireAuthorization();
 api.MapAuth();
-api.MapGet("/foundation", () => new { phase = 1, financialDataAvailable = false }).WithTags("Fundação");
+api.MapClassifications();
+api.MapGet("/foundation", () => new { phase = 2, financialDataAvailable = false }).WithTags("Fundação");
 app.MapOpenApi("/api/v1/openapi/{documentName}.json").RequireAuthorization();
 app.Map("/api/{**path}", () => Results.Problem(statusCode: 404, title: "Endpoint não disponível.")).RequireAuthorization();
 app.MapFallbackToFile("index.html").AllowAnonymous();

@@ -70,7 +70,10 @@ public sealed class FoundationTests : IDisposable
         Assert.Equal("daniel", user.Username);
         Assert.NotEqual(Password, user.PasswordHash);
         Assert.DoesNotContain(Password, user.PasswordHash);
-        Assert.Single(await db.Database.GetAppliedMigrationsAsync());
+        var migrations = await db.Database.GetAppliedMigrationsAsync();
+        Assert.Contains("20261103191308_Foundation", migrations);
+        Assert.Contains("20261103225105_Classifications", migrations);
+        Assert.Contains("20261103232541_CategoryHierarchy", migrations);
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/v1/auth/login", new { username = "daniel", password = Password })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await Post(client, "login", new { username = "daniel", password = Password })).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await Post(client, "setup", new { username = "intruder", password = Password })).StatusCode);
