@@ -44,7 +44,7 @@ export function RecordsPage() {
   }
 
   return <>
-    <header className="page-heading records-heading"><div><h1 tabIndex={-1}>Registros</h1><p>Suas entradas e saídas previstas em um só lugar.</p></div><Button asChild><Link to="/registros/novo"><Plus size={18} aria-hidden="true" />Novo registro</Link></Button></header>
+    <header className="page-heading records-heading"><div><h1 tabIndex={-1}>Registros</h1><p>Suas entradas e saídas previstas em um só lugar.</p></div><Button asChild><Link to="/registros/novo">Novo registro</Link></Button></header>
     {error && <p className="form-error records-error" role="alert">{error}</p>}
     <section className="panel records-list" aria-label="Registros cadastrados">
       {loading ? <p className="records-state" role="status">Carregando…</p> : records.length === 0 ? <div className="records-empty"><CalendarDays aria-hidden="true" /><h2>Nenhum registro cadastrado</h2><p>Cadastre uma entrada ou saída para começar seu planejamento.</p><Button asChild><Link to="/registros/novo"><Plus size={18} />Criar primeiro registro</Link></Button></div> : <div className="record-rows">{records.map(record => <article className="record-row" key={record.id}>
