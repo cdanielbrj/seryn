@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Seryn</Name>
+  <Repository>ghcr.io/cdanielbrj/seryn:latest</Repository>
+  <Registry>https://github.com/cdanielbrj/seryn/pkgs/container/seryn</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/cdanielbrj/seryn/issues</Support>
+  <Project>https://github.com/cdanielbrj/seryn</Project>
+  <Overview>Seryn is a self-hosted planner for expected income and expenses.</Overview>
+  <Category>Productivity: Tools:</Category>
+  <WebUI>http://[IP]:[PORT:8080]</WebUI>
+  <Icon>https://raw.githubusercontent.com/cdanielbrj/seryn/main/src/Seryn.Web/public/icons/icon-192.png</Icon>
+  <ExtraParams>--read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --cap-drop=ALL --security-opt no-new-privileges:true</ExtraParams>
+  <Description>
+    Seryn runs as one ASP.NET Core container with SQLite, sessions, and encryption keys persisted under /data.
+
+    Before the first start, set a unique 16–128 character administrator password. The password provisions a new database only; it never resets an existing account. The appdata directory must be owned by UID/GID 1654: run `chown 1654:1654 /mnt/user/appdata/seryn` on the Unraid host before starting.
+
+    For reverse-proxy access, enable HTTPS and set the exact proxy address. Direct LAN access with HTTPS disabled sends credentials without transport encryption.
+  </Description>
+  <Config Name="WebUI port" Target="8080" Default="8080" Mode="tcp" Description="Host port for the Seryn web interface." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Application data" Target="/data" Default="/mnt/user/appdata/seryn" Mode="rw" Description="SQLite, sessions, and encryption keys. Must be owned by UID/GID 1654." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/seryn</Config>
+  <Config Name="Initial administrator user" Target="SERYN_ADMIN_USER" Default="admin" Mode="" Description="Used only when the data directory has no existing administrator." Type="Variable" Display="always" Required="true" Mask="false">admin</Config>
+  <Config Name="Initial administrator password" Target="SERYN_ADMIN_PASSWORD" Default="" Mode="" Description="Required on first start. Use a unique 16–128 character password; it is never used to reset an existing account." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Allowed hosts" Target="AllowedHosts" Default="*" Mode="" Description="Use the public hostname or * when Seryn is accessed through the Unraid IP." Type="Variable" Display="advanced" Required="true" Mask="false">*</Config>
+  <Config Name="Require HTTPS" Target="Seryn__RequireHttps" Default="false" Mode="" Description="Set true behind an HTTPS reverse proxy. Leave false only for trusted LAN or Tailscale access." Type="Variable" Display="advanced" Required="true" Mask="false">false</Config>
+  <Config Name="Trusted proxy" Target="Seryn__TrustedProxies__0" Default="127.0.0.1" Mode="" Description="Exact IP address of the reverse proxy as seen by the container. Keep 127.0.0.1 when no proxy is used." Type="Variable" Display="advanced" Required="true" Mask="false">127.0.0.1</Config>
+</Container>

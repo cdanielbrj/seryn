@@ -2,7 +2,7 @@
 
 Seryn is a self-hosted planner for expected income and expenses. Phase 1 is complete and Phase 2 is in progress, following the [product specification](docs/SERYN_SPEC.md).
 
-Available today: secure administrator provisioning, login/logout, persistent local sessions, EF Core migrations on SQLite, editable types/categories/payment methods, financial-record CRUD, the approved responsive shell, period navigation, light/dark themes, and an installable web-app manifest. Projection calculations and the data-backed dashboard are the next Phase 2 increments. Import/export and in-app backup remain reserved for Phase 3.
+Available today: secure administrator provisioning, login/logout, persistent local sessions, EF Core migrations on SQLite, editable types/categories/payment methods, financial-record CRUD, deterministic projections, the data-backed dashboard, period navigation, light/dark themes, and an installable web-app manifest. Import/export and in-app backup remain reserved for Phase 3.
 
 Current version: **0.1.0**.
 
@@ -85,6 +85,8 @@ docker compose up -d --wait
 Before upgrading across migrations, keep a consistent copy of the volume. Phase 1 does not have an online backup API. For an administrative backup, stop the container and copy the complete volume—including keys and SQLite auxiliary files—with the host's backup tool. Restore it only while the application is stopped and preserve ownership/mode. Never copy only `seryn.sqlite` while the application is using WAL. A validated online backup/restore flow belongs to Phase 3.
 
 ## Unraid and bind mounts
+
+An Unraid template is available at [`unraid/seryn.xml`](unraid/seryn.xml). After it is pushed to `main`, in Unraid open **Docker → Add Container → Template repositories** and add `https://raw.githubusercontent.com/cdanielbrj/seryn/main/unraid/seryn.xml`; then choose **Add Container** and select Seryn. The template uses the published multi-architecture image `ghcr.io/cdanielbrj/seryn:latest`.
 
 Create the appdata directory and assign it to UID/GID `1654`, used by the official ASP.NET runtime image:
 
@@ -209,9 +211,10 @@ Chromium desktop and WebKit with an iPhone viewport exercise login, themes, navi
 - `GET /api/v1/auth/session`, `POST /api/v1/auth/logout`, and `GET /api/v1/foundation`: authenticated.
 - `GET/POST /api/v1/records` and `GET/PATCH/DELETE /api/v1/records/{id}`: authenticated record CRUD.
 - `/api/v1/types`, `/api/v1/categories`, and `/api/v1/payment-methods`: authenticated classification CRUD.
+- `GET /api/v1/projections?period=month|semester|year&reference=YYYY-MM`: authenticated derived dashboard projection.
 - `GET /api/v1/openapi/v1.json`: server-generated OpenAPI, authenticated.
 
-Mutating calls send the session cookie and the `X-CSRF-TOKEN` value obtained from `/auth/csrf`. Errors use Problem Details. All financial paths return 401 without a session. Projection, import/export, and backup handlers remain unavailable until their corresponding increments.
+Mutating calls send the session cookie and the `X-CSRF-TOKEN` value obtained from `/auth/csrf`. Errors use Problem Details. All financial paths return 401 without a session. Import/export and backup handlers remain unavailable until their corresponding increments.
 
 ## Releases
 
@@ -224,4 +227,4 @@ ghcr.io/<owner>/<repository>:<commit-sha>
 
 When a commit changes `<Version>`, the successful workflow creates one annotated `vX.Y.Z` Git tag. Existing tags are never moved. The workflow does not create a GitHub Release; that remains a separate explicit action. The initial successful `main` build creates `v0.1.0` because the previous revision has no version file.
 
-Implementation decisions are recorded in [ADR-002](docs/ADR-002-PHASE-1.md) and [ADR-003](docs/ADR-003-PHASE-2-RECORDS.md). The canonical financial examples will be implemented and tested with the projection engine in **Phase 2**. No later phase is declared complete.
+Implementation decisions are recorded in [ADR-002](docs/ADR-002-PHASE-1.md), [ADR-003](docs/ADR-003-PHASE-2-RECORDS.md), and [ADR-004](docs/ADR-004-DASHBOARD-PROJECTIONS.md). No later phase is declared complete.

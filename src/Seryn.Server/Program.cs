@@ -12,6 +12,7 @@ using Seryn.Server.Api;
 using Seryn.Server.Auth;
 using Seryn.Server.Classifications;
 using Seryn.Server.Persistence;
+using Seryn.Server.Projections;
 using Seryn.Server.Records;
 
 if (args.Contains("--healthcheck"))
@@ -43,6 +44,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ClassificationService>();
 builder.Services.AddScoped<RecordService>();
+builder.Services.AddScoped<ProjectionService>();
 builder.Services.AddScoped<IPasswordHasher<LocalUser>, PasswordHasher<LocalUser>>();
 builder.Services.Configure<PasswordHasherOptions>(options => options.IterationCount = 210_000);
 builder.Services.AddProblemDetails();
@@ -152,7 +154,8 @@ var api = app.MapGroup("/api/v1").RequireAuthorization();
 api.MapAuth();
 api.MapClassifications();
 api.MapRecords();
-api.MapGet("/foundation", () => new { phase = 2, financialDataAvailable = false }).WithTags("Fundação");
+api.MapProjections();
+api.MapGet("/foundation", () => new { phase = 2, financialDataAvailable = true }).WithTags("Fundação");
 app.MapOpenApi("/api/v1/openapi/{documentName}.json").RequireAuthorization();
 app.Map("/api/{**path}", () => Results.Problem(statusCode: 404, title: "Endpoint não disponível.")).RequireAuthorization();
 app.MapFallbackToFile("index.html").AllowAnonymous();
