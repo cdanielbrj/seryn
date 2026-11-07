@@ -134,7 +134,7 @@ dotnet tool restore
 dotnet restore Seryn.slnx
 # Export SERYN_ADMIN_USER and SERYN_ADMIN_PASSWORD (or SERYN_ADMIN_PASSWORD_FILE) first.
 # dotnet run does not load the Compose .env file.
-dotnet run --project src/Seryn.Server
+dotnet run --project src/server
 ```
 
 The development profile uses `http://127.0.0.1:8080`, explicit local HTTP, and `.data/` in the repository root. Migrations run at startup. When using the shared Compose instance, it can provide the API to Vite without starting another backend on the same port.
@@ -142,7 +142,7 @@ The development profile uses `http://127.0.0.1:8080`, explicit local HTTP, and `
 Frontend terminal:
 
 ```sh
-cd src/Seryn.Web
+cd src/web
 npm ci
 npm run dev
 ```
@@ -152,10 +152,10 @@ Open `http://127.0.0.1:5173`. Vite proxies `/api` and `/health` to the backend s
 To serve the compiled frontend directly from local Kestrel:
 
 ```sh
-npm --prefix src/Seryn.Web run build
-mkdir -p src/Seryn.Server/wwwroot
-cp -R src/Seryn.Web/dist/. src/Seryn.Server/wwwroot/
-dotnet run --project src/Seryn.Server
+npm --prefix src/web run build
+mkdir -p src/server/wwwroot
+cp -R src/web/dist/. src/server/wwwroot/
+dotnet run --project src/server
 ```
 
 `wwwroot` is a generated, ignored artifact. Rebuild and copy it after UI changes.
@@ -166,11 +166,11 @@ dotnet run --project src/Seryn.Server
 dotnet build Seryn.slnx -c Release
 dotnet test Seryn.slnx -c Release
 dotnet format Seryn.slnx --verify-no-changes
-dotnet ef migrations has-pending-model-changes --project src/Seryn.Server
-npm --prefix src/Seryn.Web ci
-npm --prefix src/Seryn.Web run lint
-npm --prefix src/Seryn.Web test
-npm --prefix src/Seryn.Web run build
+dotnet ef migrations has-pending-model-changes --project src/server
+npm --prefix src/web ci
+npm --prefix src/web run lint
+npm --prefix src/web test
+npm --prefix src/web run build
 ```
 
 Without local SDKs, use the Docker test stages:
@@ -194,14 +194,14 @@ docker buildx build --platform linux/amd64 --load -t seryn:amd64 .
 Use a disposable installation only. Provision its container with `SERYN_ADMIN_USER=e2e` and `SERYN_ADMIN_PASSWORD=Seryn teste descartavel 123!` (test-only credential). The E2E setup verifies that the administrator exists; it never creates an account through the API.
 
 ```sh
-cd src/Seryn.Web
+cd src/web
 npx playwright install --with-deps chromium webkit
 SERYN_E2E=1 \
 SERYN_E2E_URL=http://127.0.0.1:18080 \
 npm run test:e2e
 ```
 
-Chromium desktop and WebKit with an iPhone viewport exercise login, themes, navigation, deep links, periods, and logout. Screenshots are written under the ignored `src/Seryn.Web/test-results/` directory. Automated WebKit does not replace physical Safari/iPhone validation.
+Chromium desktop and WebKit with an iPhone viewport exercise login, themes, navigation, deep links, periods, and logout. Screenshots are written under the ignored `src/web/test-results/` directory. Automated WebKit does not replace physical Safari/iPhone validation.
 
 ## API
 
