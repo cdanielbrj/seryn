@@ -1,8 +1,9 @@
+import '../../../setup/vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
-import { Dashboard } from './Dashboard'
+import { Dashboard } from '@/features/dashboard/Dashboard'
 
 const projection = {
   periodo: 'month', referencia: '2027-02', inicio: '2027-02', fim: '2027-02', entradasCentavos: 1000000, saidasCentavos: 75000, resultadoCentavos: 925000,

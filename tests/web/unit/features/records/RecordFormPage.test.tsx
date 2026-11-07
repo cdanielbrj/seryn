@@ -1,8 +1,9 @@
+import '../../../setup/vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
-import { RecordFormPage } from './RecordFormPage'
+import { RecordFormPage } from '@/features/records/RecordFormPage'
 
 afterEach(() => vi.unstubAllGlobals())
 

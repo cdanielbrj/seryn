@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
-    "lint": "eslint . --max-warnings 0",
-    "test": "vitest run",
-    "test:e2e": "playwright test"
+    "lint": "cd ../.. && node src/web/node_modules/eslint/bin/eslint.js --config src/web/eslint.config.js src/web tests/web --max-warnings 0",
+    "test": "cd ../.. && node src/web/node_modules/vitest/vitest.mjs run --config src/web/vite.config.ts",
+    "test:e2e": "NODE_PATH=./node_modules playwright test"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

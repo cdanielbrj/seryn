@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDownRight, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Equal, Layers, TrendingUp } from 'lucide-react'
-import { ApiError, get } from '../lib/api'
-import { formatMoney } from '../lib/records'
-import { chartDescription, monthName, type DashboardProjection, type TopRecordProjection } from '../lib/projections'
-import { movePeriod, periodLabel, periods, type Period, type Reference } from '../lib/period'
+import { ApiError, get } from '@/shared/api/client'
+import { formatMoney } from '@/features/records/records'
+import { chartDescription, monthName, type DashboardProjection, type TopRecordProjection } from './projections'
+import { movePeriod, periodLabel, periods, type Period, type Reference } from './period'
 
 export function Dashboard() {
   const [period, setPeriod] = useState<Period>('month')

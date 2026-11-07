@@ -35,7 +35,7 @@ The initial setup-code flow was replaced by startup provisioning. The revision p
 | `npm audit` | Zero reported vulnerabilities |
 | NuGet audit, including transitive packages | No vulnerable package reported by configured sources |
 
-Browser coverage includes login, desktop/mobile composition, absence of fictional amounts, period navigation, theme persistence, secondary routes, deep-link reload, logout, browser-history behavior after logout, and absence of Cache Storage. Both theme screenshots are generated under the ignored `src/web/test-results/` path.
+Browser coverage includes login, desktop/mobile composition, absence of fictional amounts, period navigation, theme persistence, secondary routes, deep-link reload, logout, browser-history behavior after logout, and absence of Cache Storage. Screenshots and reports are generated under the ignored `tests/web/artifacts/` path.
 
 ## Validation limits
 

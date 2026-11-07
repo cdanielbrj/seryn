@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { Check, ChevronRight, Layers, Pencil, Plus, Trash2, X } from 'lucide-react'
-import { ApiError, get, patch, post, remove } from '../lib/api'
-import { Button } from './ui/button'
+import { ApiError, get, patch, post, remove } from '@/shared/api/client'
+import { Button } from '@/shared/ui/Button'
 
 type Category = { id: string; nome: string; categoriaPaiId: string | null }
 

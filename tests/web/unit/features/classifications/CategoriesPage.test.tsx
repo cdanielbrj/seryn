@@ -1,7 +1,8 @@
+import '../../../setup/vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
-import { CategoriesPage } from './CategoriesPage'
+import { CategoriesPage } from '@/features/classifications/CategoriesPage'
 
 afterEach(() => vi.unstubAllGlobals())
 

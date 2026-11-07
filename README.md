@@ -201,7 +201,7 @@ SERYN_E2E_URL=http://127.0.0.1:18080 \
 npm run test:e2e
 ```
 
-Chromium desktop and WebKit with an iPhone viewport exercise login, themes, navigation, deep links, periods, and logout. Screenshots are written under the ignored `src/web/test-results/` directory. Automated WebKit does not replace physical Safari/iPhone validation.
+Chromium desktop and WebKit with an iPhone viewport exercise login, themes, navigation, deep links, periods, and logout. Screenshots and reports are written under the ignored `tests/web/artifacts/` directory. Automated WebKit does not replace physical Safari/iPhone validation.
 
 ## API
 

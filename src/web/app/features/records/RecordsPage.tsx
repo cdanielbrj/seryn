@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowDownLeft, ArrowUpRight, CalendarDays, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { ApiError, get, remove } from '../lib/api'
-import { formatMoney, formatMonth, recurrenceLabels, type RecordItem } from '../lib/records'
-import { Button } from './ui/button'
+import { ApiError, get, remove } from '@/shared/api/client'
+import { Button } from '@/shared/ui/Button'
+import { formatMoney, formatMonth, recurrenceLabels, type RecordItem } from './records'
 
 export function RecordsPage() {
   const [records, setRecords] = useState<RecordItem[]>([])

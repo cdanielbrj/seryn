@@ -1,5 +1,6 @@
+import '../../../setup/vitest'
 import { describe, expect, it } from 'vitest'
-import { movePeriod, periodLabel } from './period'
+import { movePeriod, periodLabel } from '@/features/dashboard/period'
 
 describe('navegação civil do período', () => {
   it('atravessa anos em ambas as direções', () => {

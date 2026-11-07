@@ -1,7 +1,8 @@
+import '../../../setup/vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
-import { AuthScreen } from './AuthScreen'
+import { AuthScreen } from '@/features/auth/AuthScreen'
 
 afterEach(() => vi.unstubAllGlobals())
 

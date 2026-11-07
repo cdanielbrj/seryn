@@ -1,11 +1,12 @@
 # syntax=docker/dockerfile:1
 FROM --platform=$BUILDPLATFORM node:24-bookworm-slim AS web-deps
-WORKDIR /web
+WORKDIR /workspace/src/web
 COPY src/web/package*.json ./
 RUN npm ci
 
 FROM web-deps AS web-source
 COPY src/web/ ./
+COPY tests/web/ /workspace/tests/web/
 
 FROM web-source AS web-test
 RUN npm run lint && npm test && npm run build
@@ -26,7 +27,7 @@ FROM server-build AS server-test
 RUN dotnet test Seryn.slnx -c Release --no-restore
 
 FROM server-build AS publish
-COPY --from=web-build /web/dist/ src/server/wwwroot/
+COPY --from=web-build /workspace/src/web/dist/ src/server/wwwroot/
 RUN dotnet publish src/server -c Release --no-restore -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final

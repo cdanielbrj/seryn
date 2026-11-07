@@ -12,7 +12,7 @@
   <Overview>Seryn is a self-hosted planner for expected income and expenses.</Overview>
   <Category>Productivity: Tools:</Category>
   <WebUI>http://[IP]:[PORT:8080]</WebUI>
-  <Icon>https://raw.githubusercontent.com/cdanielbrj/seryn/main/src/web/public/icons/icon-192.png</Icon>
+  <Icon>https://raw.githubusercontent.com/cdanielbrj/seryn/main/src/web/static/icons/icon-192.png</Icon>
   <ExtraParams>--read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --cap-drop=ALL --security-opt no-new-privileges:true</ExtraParams>
   <Description>
     Seryn runs as one ASP.NET Core container with SQLite, sessions, and encryption keys persisted under /data.

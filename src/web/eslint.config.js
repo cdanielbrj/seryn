@@ -5,10 +5,10 @@ import hooks from 'eslint-plugin-react-hooks'
 import refresh from 'eslint-plugin-react-refresh'
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'test-results', 'playwright-report'] },
+  { ignores: ['src/web/dist', 'src/web/node_modules', 'tests/web/artifacts'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  { files: ['public/*.js'], languageOptions: { globals: globals.browser } },
+  { files: ['src/web/static/*.js'], languageOptions: { globals: globals.browser } },
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },

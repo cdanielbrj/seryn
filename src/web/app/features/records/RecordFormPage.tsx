@@ -1,9 +1,9 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { ArrowDownLeft, ArrowLeft, ArrowUpRight, CalendarDays, CreditCard, Layers, Save, Tag } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ApiError, get, patch, post } from '../lib/api'
-import { formatMonth, maskMoney, parseMoney, recurrenceLabels, type Category, type Classification, type Direction, type Occurrence, type Recurrence, type RecordItem } from '../lib/records'
-import { Button } from './ui/button'
+import { ApiError, get, patch, post } from '@/shared/api/client'
+import { Button } from '@/shared/ui/Button'
+import { formatMonth, maskMoney, parseMoney, recurrenceLabels, type Category, type Classification, type Direction, type Occurrence, type Recurrence, type RecordItem } from './records'
 
 type FormState = {
   nome: string; movimentacao: Direction; tipoId: string; categoriaId: string; pagamentoId: string
