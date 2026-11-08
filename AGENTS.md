@@ -1,35 +1,40 @@
 # AGENTS.md — Seryn
 
-Este repositório implementa **Seryn**, um planejador self-hosted de entradas/saídas previstas. **Stack aprovada: React/TypeScript/Vite no frontend, ASP.NET Core 10/C# no backend, EF Core 10 + SQLite na persistência.** **Leia `docs/SERYN_SPEC.md` integralmente antes de modificar o projeto.** O documento define o produto, a arquitetura, as regras financeiras, a UI aprovada e os critérios de aceite; ele prevalece sobre suposições genéricas sobre aplicativos de finanças.
+This repository implements **Seryn**, a self-hosted planner for expected income and expenses. **Approved stack: React/TypeScript/Vite on the frontend, ASP.NET Core 10/C# on the backend, and EF Core 10 with SQLite for persistence.** **Read `docs/product/SERYN_SPEC.md` in full before modifying the project.** It defines the product, financial rules, approved UI, and acceptance criteria and takes precedence over generic assumptions about financial applications. Current technical decisions live under `docs/architecture/`.
 
-## Regras que não podem ser violadas
+## Invariants
 
-- Um único modelo de registro para qualquer entrada/saída; **valor armazenado é sempre por ocorrência**, em centavos inteiros.
-- Recorrências são **calculadas em consultas**, sem gerar parcelas ou lançamentos futuros no SQLite.
-- Totais, fim de séries, projeções e resultados são derivados, não fonte de verdade persistida.
-- **Todos os valores são previstos.** Não inventar status pago/quitado/pendente ou contas bancárias.
-- Tipo e categoria são classificações editáveis, **nunca determinam comportamento financeiro**.
-- CSV/Excel import/export deve preservar o registro original e permitir round-trip sem duplicações silenciosas.
-- Aplicação self-hosted em **um único Docker container e processo ASP.NET Core (Kestrel)** com SQLite persistido em `/data`; Node somente durante o build do React.
-- **Monólito modular, sem microserviços**, serviços auxiliares ou autenticação terceirizada obrigatória; usar API `/api/v1` e OpenAPI para permitir integrações futuras.
-- UI, importações e APIs futuras devem compartilhar o mesmo serviço de aplicação e validação; nunca escrever diretamente no banco contornando as regras.
-- **Usuário único e primeiro acesso seguro antes de disponibilizar dados reais**; proteger rotas e sessões, backups e exportações.
-- Dashboard desktop deve preservar as seções do protótipo **`design/seryn_mock_v2.html`**; mobile deve seguir composição própria com navbar inferior. Temas claro e escuro.
-- O mock contém dados fictícios, não algoritmos financeiros válidos. **Não copiar cálculos estáticos do mock**.
-- Uma projeção **não é saldo bancário**: o gráfico deve usar resultado acumulado dentro do período, começando de zero.
+- Use one record model for every expected income or expense; the stored amount is always the per-occurrence value in integer cents.
+- Calculate recurrences in queries. Never generate future installments or entries in SQLite.
+- Totals, series end dates, projections, and results are derived values, not persisted sources of truth.
+- All values are expected. Do not introduce paid, settled, pending, or bank-account concepts.
+- Type and category are editable classifications and never determine financial behavior.
+- CSV/Excel import and export must preserve the original record and support round trips without silent duplication.
+- Run the self-hosted application in one Docker container and ASP.NET Core/Kestrel process, with SQLite persisted under `/data`; Node exists only during the React build.
+- Keep a modular monolith. Do not introduce microservices, auxiliary services, or mandatory third-party authentication. Use `/api/v1` and OpenAPI for future integrations.
+- UI, imports, and future APIs must use the same application service and validation. Never write directly to the database around those rules.
+- Require a secure single-user first access before exposing real data. Protect routes, sessions, backups, and exports.
+- Preserve the desktop dashboard sections from `docs/design/prototypes/seryn_mock_v2.html`. Mobile uses its own composition with bottom navigation. Support light and dark modes.
+- The prototype contains fictitious data, not valid financial algorithms. Never copy its static calculations.
+- A projection is not a bank balance. The chart uses the accumulated result within its displayed period and starts at zero.
 
-## Como trabalhar
+## Working in the repository
 
-1. Leia `docs/SERYN_SPEC.md` e inspecione `design/`.
-2. Respeite a stack .NET 10 LTS + EF Core 10, o monólito e a camada C# pura de recorrências; implemente em incrementos pequenos e testáveis.
-3. Não acrescente funcionalidades fora do escopo da v0.1 sem solicitação, inclusive conectores da Aira, tokens de terceiros, contas bancárias ou módulos de investimentos.
-4. Faça build, lint e testes, inclusive exemplos numéricos canônicos, antes de declarar conclusão.
-5. Documente decisões técnicas de implementação que não constem do documento de produto.
-6. Termine cada entrega com resumo do que funciona, como testar e o que falta.
-7. Escreva em inglês todo conteúdo destinado ao repositório, incluindo `README.md`, documentos em `docs/`, ADRs, descrições de release e workflows. A interface e os contratos públicos do produto permanecem em português do Brasil conforme a especificação.
+1. Read `docs/product/SERYN_SPEC.md` and inspect `docs/design/`.
+2. Preserve .NET 10 LTS, EF Core 10, the modular monolith, and the pure C# recurrence layer. Implement small, testable increments.
+3. Do not add functionality outside v0.1 without a request, including Aira connectors, third-party tokens, bank accounts, or investment modules.
+4. Run builds, lint, tests, and canonical numeric examples before declaring completion.
+5. Document implementation decisions not already covered by the product specification.
+6. End each delivery with what works, how it was tested, and what remains.
+7. Write all repository content in English, including READMEs, documentation, ADRs, release descriptions, and workflows. Product UI and public contracts remain in Brazilian Portuguese as required by the specification.
 
-## Instância local de desenvolvimento
+## Agent workflows
 
-- Manter o projeto Compose `seryn` ativo em `http://localhost:8080` para validação compartilhada com o usuário.
-- Atualizar com `docker compose -p seryn up --build -d --wait`. A recriação do container é permitida; preservar o volume `seryn_seryn-data`, credenciais e dados existentes.
-- Não encerrar essa instância ao finalizar uma tarefa e não executar `down -v` nela. Testes destrutivos e E2E devem usar outro projeto Compose com volume descartável.
+- Versioned repository skills live under `.agents/skills/`. Use the matching skill when a task fits its description.
+- Keep only always-applicable rules in `AGENTS.md`. Detailed procedures belong in skills; canonical knowledge belongs in `docs/` and local READMEs.
+
+## Shared local development instance
+
+- Keep the Compose project `seryn` running at `http://localhost:8080` for shared validation.
+- Update it with `docker compose -p seryn up --build -d --wait`. Container recreation is allowed; preserve the `seryn_seryn-data` volume, credentials, and existing data.
+- Do not stop this instance when finishing a task, and never run `down -v` against it. Destructive and end-to-end tests must use a separate Compose project with a disposable volume.

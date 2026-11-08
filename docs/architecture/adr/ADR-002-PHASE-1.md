@@ -4,7 +4,7 @@ Status: implemented. Scope: Phase 1 only.
 
 ## Structure
 
-One ASP.NET Core 10 project contains the internal `Auth`, `Api`, and `Persistence` modules. The React/TypeScript/Vite frontend uses Tailwind CSS 4, a shadcn/ui-style Button built on Radix Slot, and tokens taken from the approved v2 mock. Files under `design/` remain reference artifacts.
+One ASP.NET Core 10 project contains the internal `Auth`, `Api`, and `Persistence` modules. The React/TypeScript/Vite frontend uses Tailwind CSS 4, a shadcn/ui-style Button built on Radix Slot, and tokens taken from the approved v2 mock. Files under `docs/design/prototypes/` remain reference artifacts.
 
 Minimal APIs expose DTOs under `/api/v1`. The server generates OpenAPI at `/api/v1/openapi/v1.json`, available only to an authenticated session. The SPA fallback handles React routes, while unknown API routes return Problem Details. Phase 1 has no CRUD or projection endpoints. The authenticated `/api/v1/foundation` endpoint explicitly reports that financial data is unavailable.
 

@@ -4,7 +4,7 @@
 > **Reference date:** November 3, 2026  
 > **Product language:** Brazilian Portuguese (`pt-BR`)  
 > **Audience:** Codex and project contributors  
-> **Visual source of truth:** `design/seryn_mock_v2.html` and the images under `design/`
+> **Visual source of truth:** `docs/design/prototypes/seryn_mock_v2.html` and the reference images in the same directory
 
 ## 0. Primary implementation instruction
 
@@ -217,7 +217,7 @@ Expanded projection export, if added in v0.1, is a separate lower-priority opera
 
 ## 7. Approved v2 design and experience
 
-`design/seryn_mock_v2.html` is the primary visual reference, supported by the four light/dark desktop/mobile screenshots. It is illustrative source material, not production code. Its figures and period multiplication are fictitious and must never become business logic.
+`docs/design/prototypes/seryn_mock_v2.html` is the primary visual reference, supported by the light/dark desktop/mobile screenshots. It is illustrative source material, not production code. Its figures and period multiplication are fictitious and must never become business logic.
 
 ### Desktop structure to preserve
 
