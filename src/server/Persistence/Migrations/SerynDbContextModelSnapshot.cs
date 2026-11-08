@@ -187,6 +187,61 @@ namespace Seryn.Server.Persistence.Migrations
                     b.ToTable("sessions", (string)null);
                 });
 
+            modelBuilder.Entity("Seryn.Server.Persistence.Objective", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DesiredMonth")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DesiredYear")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("EstimatedValueCents")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Interest")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Link")
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("UpdatedAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Interest", "Priority");
+
+                    b.ToTable("objectives", null, t =>
+                        {
+                            t.HasCheckConstraint("objective_desired_month", "(DesiredYear IS NULL AND DesiredMonth IS NULL) OR (DesiredYear >= 1 AND DesiredYear <= 9999 AND DesiredMonth >= 1 AND DesiredMonth <= 12)");
+
+                            t.HasCheckConstraint("objective_priority_range", "Priority >= -3 AND Priority <= 3");
+
+                            t.HasCheckConstraint("objective_value_positive", "EstimatedValueCents > 0");
+                        });
+                });
+
             modelBuilder.Entity("Seryn.Server.Persistence.PaymentMethod", b =>
                 {
                     b.Property<Guid>("Id")

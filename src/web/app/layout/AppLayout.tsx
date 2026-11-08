@@ -10,7 +10,8 @@ export function AppLayout({ username, onLogout }: { username: string; onLogout: 
   const location = useLocation()
   useEffect(() => {
     const current = navigation.find(item => item.path === location.pathname) ??
-      (location.pathname.startsWith('/registros/') ? navigation.find(item => item.path === '/registros') : undefined)
+      (location.pathname.startsWith('/registros/') ? navigation.find(item => item.path === '/registros') : undefined) ??
+      (location.pathname.startsWith('/objetivos/') ? navigation.find(item => item.path === '/objetivos') : undefined)
     document.title = `Seryn — ${current?.label ?? 'Página não encontrada'}`
     document.querySelector<HTMLElement>('main h1')?.focus()
     window.scrollTo(0, 0)

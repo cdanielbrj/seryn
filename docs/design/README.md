@@ -4,6 +4,8 @@ The files under `prototypes/` are the approved visual references for Seryn. The 
 
 The v2 prototype remains the visual source for the dashboard and persistent shell. The later Análises area is an approved responsive extension defined by the product specification; it reuses the established shell, tokens, panels, period controls, and accessibility contracts without changing the dashboard prototype.
 
+Objetivos is a second approved responsive extension. It reuses the same shell, panels, form controls, semantic badges, themes, and mobile accessibility contracts while keeping objective values visually and semantically separate from projected financial results.
+
 ## Source-of-truth order
 
 1. The [product specification](../product/SERYN_SPEC.md) defines behavior, financial semantics, public language, and acceptance criteria.

@@ -22,3 +22,4 @@
 @import "./features/records.css" layer(features);
 @import "./features/classifications.css" layer(features);
 @import "./features/analyses.css" layer(features);
+@import "./features/objectives.css" layer(features);
