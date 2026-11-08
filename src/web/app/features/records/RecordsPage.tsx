@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowDownLeft, ArrowUpRight, CalendarDays, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { ApiError, get, remove } from '@/shared/api/client'
-import { Button } from '@/shared/ui/Button'
+import { ApiError, get, remove } from '@/global/api/client'
+import { Button } from '@/global/ui/Button'
 import { formatMoney, formatMonth, recurrenceLabels, type RecordItem } from './records'
 
 export function RecordsPage() {

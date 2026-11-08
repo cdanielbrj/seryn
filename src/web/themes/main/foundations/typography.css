@@ -1,0 +1,6 @@
+body { background: radial-gradient(ellipse at 82% -20%,var(--bgsoft),transparent 50%),var(--bg); color: var(--fg); -webkit-font-smoothing: antialiased; }
+h1 { font-size: 36px; font-weight: 760; letter-spacing: -1.25px; line-height: 1.15; margin: 0 0 7px; }
+h2 { font-size: 21px; font-weight: 730; line-height: 1.25; letter-spacing: -.3px; margin: 0 0 5px; }
+h3 { font-size: 15px; font-weight: 650; margin: 0 0 7px; }
+p { line-height: 1.55; }
+.muted { color: var(--muted); }

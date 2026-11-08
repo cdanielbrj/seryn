@@ -1,0 +1,9 @@
+html[data-theme="main"][data-color-scheme="light"] {
+  color-scheme: light;
+  --bg: #F2F4F5; --bgsoft: #E8F0EF; --panel: rgba(255,255,255,.93); --panel-solid: #fff;
+  --sidebar: rgba(249,251,251,.95); --fg: #1B292D; --muted: #5B6B70;
+  --line: rgba(34,57,62,.12); --shadow: 0 12px 34px rgba(39,62,65,.055);
+  --accent: #117E78; --on-accent: #fff; --button-primary: #117E78; --on-button-primary: #fff; --accent-tint: rgba(17,126,120,.105);
+  --emerald: #087E57; --emerald-bg: rgba(21,154,105,.10); --rose: #BB3D58; --button-danger: #BB3D58; --rose-bg: rgba(205,71,101,.085);
+  --blue: #456A9B; --blue-bg: rgba(69,106,155,.09); --pill: #E8ECEC; --graph: #128778;
+}

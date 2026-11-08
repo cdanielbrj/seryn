@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@layer reset, tokens, base, layouts, components, features, utilities;
+
+@import "./tokens/common.css" layer(tokens);
+@import "./tokens/light.css" layer(tokens);
+@import "./tokens/dark.css" layer(tokens);
+@import "./foundations/reset.css" layer(reset);
+@import "./foundations/typography.css" layer(base);
+@import "./foundations/accessibility.css" layer(base);
+@import "./layouts/app-shell.css" layer(layouts);
+@import "./layouts/navigation.css" layer(layouts);
+@import "./layouts/auth.css" layer(layouts);
+@import "./components/button.css" layer(components);
+@import "./components/brand.css" layer(components);
+@import "./components/panel.css" layer(components);
+@import "./components/form.css" layer(components);
+@import "./components/dialog.css" layer(components);
+@import "./components/period-selector.css" layer(components);
+@import "./components/theme-control.css" layer(components);
+@import "./features/dashboard.css" layer(features);
+@import "./features/records.css" layer(features);
+@import "./features/classifications.css" layer(features);

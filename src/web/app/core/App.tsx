@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { ArrowLeftRight, CalendarDays, ChevronRight, CreditCard, Home, Layers, LogOut, Settings, Tag, type LucideIcon } from 'lucide-react'
-import { ApiError, get, post } from '@/shared/api/client'
+import { ApiError, get, post } from '@/global/api/client'
 import { AuthScreen } from '@/features/auth/AuthScreen'
 import { Dashboard } from '@/features/dashboard/Dashboard'
 import { CategoriesPage } from '@/features/classifications/CategoriesPage'
 import { ClassificationsPage } from '@/features/classifications/ClassificationsPage'
 import { RecordFormPage } from '@/features/records/RecordFormPage'
 import { RecordsPage } from '@/features/records/RecordsPage'
-import { Brand } from '@/shared/ui/Brand'
-import { Button } from '@/shared/ui/Button'
-import { ThemeControl } from '@/shared/ui/ThemeControl'
+import { Brand } from '@/global/ui/Brand'
+import { Button } from '@/global/ui/Button'
+import { ThemeControl } from '@/global/ui/ThemeControl'
 
 const navigation: { path: string; label: string; icon: LucideIcon; mobile?: boolean }[] = [
   { path: '/', label: 'Visão Geral', icon: Home, mobile: true },

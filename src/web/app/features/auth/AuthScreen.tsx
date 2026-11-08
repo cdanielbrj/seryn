@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { ArrowRight, LockKeyhole, ShieldCheck } from 'lucide-react'
-import { post } from '@/shared/api/client'
-import { Brand } from '@/shared/ui/Brand'
-import { Button } from '@/shared/ui/Button'
-import { ThemeControl } from '@/shared/ui/ThemeControl'
+import { post } from '@/global/api/client'
+import { Brand } from '@/global/ui/Brand'
+import { Button } from '@/global/ui/Button'
+import { ThemeControl } from '@/global/ui/ThemeControl'
 
 export function AuthScreen({ configured, onLogin, onRetry }: { configured: boolean; onLogin: (name: string) => void; onRetry: () => void }) {
   const [error, setError] = useState('')

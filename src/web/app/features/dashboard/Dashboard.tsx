@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDownRight, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Equal, Layers, TrendingUp } from 'lucide-react'
-import { ApiError, get } from '@/shared/api/client'
+import { ApiError, get } from '@/global/api/client'
 import { formatMoney } from '@/features/records/records'
 import { chartDescription, monthName, type DashboardProjection, type TopRecordProjection } from './projections'
 import { movePeriod, periodLabel, periods, type Period, type Reference } from './period'
@@ -66,7 +66,7 @@ function ProjectionChart({ data }: { data: DashboardProjection }) {
 
 function CategoryChart({ categories, total }: { categories: DashboardProjection['categorias']; total: number }) {
   const colors = ['#117E78', '#456A9B', '#B7783A', '#8C5DA7', '#5B6B70']; const stops = categories.reduce<{ offset: number; values: string[] }>((state, category, index) => ({ offset: state.offset + category.percentual, values: [...state.values, `${colors[index % colors.length]} ${state.offset}% ${state.offset + category.percentual}%`] }), { offset: 0, values: [] }).values.join(', ')
-  return <div className="category-content"><div className="category-donut" style={{ background: `conic-gradient(${stops})` }} role="img" aria-label={`Distribuição de ${formatMoney(total)} em saídas`}><div><b>{formatMoney(total)}</b><span>Total de saídas</span></div></div><div className="category-list">{categories.map((category, index) => <div className="category-row" key={category.nome}><div className="category-left"><i style={{ background: colors[index % colors.length] }} />{category.nome}</div><span className="value">{formatMoney(category.valorCentavos)}</span><span className="percent">{category.percentual}%</span></div>)}</div></div>
+  return <div className="category-content"><div className="category-donut" style={{ background: `conic-gradient(${stops})` }} role="img" aria-label={`Distribuição de ${formatMoney(total)} em saídas`}><div><b>{formatMoney(total)}</b><span>Total de saídas</span></div></div><div className="category-list">{categories.map((category, index) => <div className="dashboard-category-row" key={category.nome}><div className="dashboard-category-left"><i style={{ background: colors[index % colors.length] }} />{category.nome}</div><span className="value">{formatMoney(category.valorCentavos)}</span><span className="percent">{category.percentual}%</span></div>)}</div></div>
 }
 function TopRecords({ incomes, expenses }: { incomes: TopRecordProjection[]; expenses: TopRecordProjection[] }) { return <div className="top-records"><TopColumn title="Maiores entradas" direction="entrada" records={incomes} /><TopColumn title="Maiores saídas" direction="saida" records={expenses} /></div> }
 function TopColumn({ title, direction, records }: { title: string; direction: 'entrada' | 'saida'; records: TopRecordProjection[] }) { return <div className="top-column"><h3>{title}</h3>{records.length ? records.map(record => <div className="top-record" key={record.id}><div><strong>{record.nome}</strong><span>{record.categoriaNome ?? 'Sem categoria'} · {record.ocorrencias === 1 ? '1 ocorrência' : `${record.ocorrencias} ocorrências`}</span></div><b className={direction}>{direction === 'entrada' ? '+' : '−'} {formatMoney(record.valorCentavos)}</b></div>) : <p>Nenhum registro no período.</p>}</div> }

@@ -1,0 +1,5 @@
+.seryn-primary-button { color: #fff !important; }
+.danger-button { background: var(--button-danger) !important; color: #fff !important; }
+.text-link { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; gap: 4px; color: var(--accent); font-size: 13px; font-weight: 650; }
+.text-link:hover { text-decoration: underline; }
+@media (min-width: 701px) { .text-link.mobile-only { display: none; } }

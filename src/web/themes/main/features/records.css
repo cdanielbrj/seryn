@@ -1,0 +1,85 @@
+.records-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+.records-heading > a { flex-shrink: 0; }
+.records-error { margin-bottom: 16px; }
+.records-list { padding: 8px 24px; }
+.records-state, .records-empty { min-height: 320px; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; color: var(--muted); }
+.records-empty > svg { width: 36px; height: 36px; color: var(--accent); margin-bottom: 17px; }
+.records-empty h2 { color: var(--fg); }
+.records-empty p { max-width: 420px; margin: 4px 0 22px; font-size: 14px; }
+.record-row { min-height: 88px; display: grid; grid-template-columns: 44px minmax(170px,1fr) minmax(130px,.55fr) minmax(130px,.45fr) 96px; gap: 15px; align-items: center; border-top: 1px solid var(--line); }
+.record-row:first-child { border-top: 0; }
+.record-direction { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; }
+.record-direction svg { width: 20px; }
+.record-direction.entrada { color: var(--emerald); background: var(--emerald-bg); }
+.record-direction.saida { color: var(--rose); background: var(--rose-bg); }
+.record-main, .record-schedule { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.record-main strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.record-main span, .record-schedule small { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.record-schedule span { font-size: 13px; font-weight: 650; }
+.record-value { font-size: 14px; text-align: right; white-space: nowrap; }
+.record-value.entrada { color: var(--emerald); }
+.record-value.saida { color: var(--rose); }
+.back-link { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; color: var(--accent); font-size: 13px; font-weight: 650; margin-bottom: 10px; }
+.record-form-layout { display: grid; grid-template-columns: minmax(0,1.55fr) minmax(280px,.65fr); gap: 20px; align-items: start; }
+.record-form-main { display: flex; flex-direction: column; gap: 20px; }
+.record-form-section { padding: 24px; }
+.record-form-section > .panel-heading { margin-bottom: 23px; }
+.direction-field { border: 0; padding: 0; margin: 0 0 20px; }
+.direction-field legend, .form-grid label { font-size: 13px; font-weight: 650; }
+.direction-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.direction-options button { min-height: 48px; border: 1px solid var(--line); border-radius: 11px; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); background: var(--panel-solid); font-weight: 650; }
+.direction-options button.selected.entrada { border-color: var(--emerald); color: var(--emerald); background: var(--emerald-bg); }
+.direction-options button.selected.saida { border-color: var(--rose); color: var(--rose); background: var(--rose-bg); }
+.direction-options svg { width: 19px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 15px; }
+.form-grid label { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.form-grid label.full { grid-column: 1 / -1; }
+.form-grid label > small:not(.field-error) { color: var(--muted); font-weight: 400; line-height: 1.4; }
+.field-label { display: inline-flex; align-items: baseline; gap: 4px; }
+.optional { color: var(--muted); font-size: 11px; font-weight: 500; }
+.field-error { color: var(--rose); font-size: 11px; font-weight: 500; line-height: 1.4; }
+.record-preview { position: sticky; top: 24px; }
+.record-preview h2 { margin-top: 17px; }
+.record-preview > p { color: var(--muted); font-size: 14px; margin: 10px 0 22px; }
+.record-preview dl { margin: 0; }
+.record-preview dl > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.record-preview dt { color: var(--muted); font-size: 12px; }
+.record-preview dd { font-size: 13px; font-weight: 650; text-align: right; margin: 0; }
+.record-form-actions { display: flex; flex-direction: column; gap: 9px; margin-top: 23px; }
+.record-prerequisites { max-width: 650px; text-align: center; padding: 46px 28px; }
+.record-prerequisites > svg { width: 34px; color: var(--accent); margin: 0 auto 18px; }
+.record-prerequisites p { color: var(--muted); }
+.record-prerequisites > div { display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+.defined-record-fields { display: grid; grid-template-columns: minmax(76px,.4fr) minmax(170px,1fr); gap: 10px; align-items: start; }
+.value-mode-field { border: 0; padding: 0; margin: 0; min-width: 0; }
+.value-mode-field legend { margin-bottom: 7px; font-size: 13px; font-weight: 650; }
+.value-mode-field > div { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; min-height: 46px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-solid); }
+.value-mode-field button { min-width: 0; padding: 7px 9px; border-radius: 7px; color: var(--muted); font-size: 12px; font-weight: 650; }
+.value-mode-field button[aria-pressed="true"] { background: var(--accent-tint); color: var(--accent); }
+.value-mode-field > .field-error { display: block; margin-top: 7px; }
+@media (max-width: 1200px) and (min-width: 701px) {
+  .record-form-layout { grid-template-columns: 1fr; }
+  .record-preview { position: static; }
+}
+@media (max-width: 700px) {
+  .records-heading { align-items: flex-start; }
+  .records-list { padding: 4px 17px; }
+  .records-empty { min-height: 300px; }
+  .record-row { grid-template-columns: 38px minmax(0,1fr) auto; gap: 10px; padding: 14px 0; }
+  .record-direction { width: 36px; height: 36px; }
+  .record-schedule { grid-column: 2; }
+  .record-value { grid-column: 3; grid-row: 1; align-self: start; padding-top: 3px; }
+  .record-row > .classification-actions { grid-column: 3; grid-row: 2; align-self: end; }
+  .record-main span { white-space: normal; }
+  .record-form-layout { display: block; }
+  .record-form-main { gap: 15px; }
+  .record-form-section { padding: 20px 17px; }
+  .record-preview { margin-top: 15px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid label.full { grid-column: auto; }
+  .form-grid input, .form-grid select { font-size: 16px; }
+  .defined-record-fields { grid-template-columns: minmax(74px,.38fr) minmax(165px,1fr); }
+  .record-prerequisites { padding: 34px 20px; }
+  .record-prerequisites > div { flex-direction: column; }
+  .record-prerequisites a { width: 100%; }
+}

@@ -4,7 +4,7 @@ import { Moon, Sun } from 'lucide-react'
 type Preference = 'light' | 'dark' | 'system'
 export function ThemeControl({ expanded = false }: { expanded?: boolean }) {
   const id = useId()
-  const [theme, setTheme] = useState(document.documentElement.dataset.theme ?? 'light')
+  const [colorScheme, setColorScheme] = useState(document.documentElement.dataset.colorScheme ?? 'light')
   const [preference, setPreference] = useState<Preference>(() => {
     try { const value = localStorage.getItem('seryn-theme'); return value === 'light' || value === 'dark' ? value : 'system' }
     catch { return 'system' }
@@ -13,9 +13,10 @@ export function ThemeControl({ expanded = false }: { expanded?: boolean }) {
     const query = matchMedia('(prefers-color-scheme: dark)')
     const sync = () => {
       const value = preference === 'system' ? query.matches ? 'dark' : 'light' : preference
-      document.documentElement.dataset.theme = value
+      document.documentElement.dataset.theme = 'main'
+      document.documentElement.dataset.colorScheme = value
       document.querySelector('meta[name="theme-color"]')?.setAttribute('content', value === 'dark' ? '#111719' : '#F2F4F5')
-      setTheme(value)
+      setColorScheme(value)
     }
     sync()
     query.addEventListener('change', sync)
@@ -41,7 +42,7 @@ export function ThemeControl({ expanded = false }: { expanded?: boolean }) {
   if (expanded) return <div className="theme-select"><label htmlFor={id}>Aparência</label><select id={id} value={preference} onChange={event => choose(event.target.value as Preference)}>
     <option value="system">Acompanhar o sistema</option><option value="light">Tema claro</option><option value="dark">Tema escuro</option>
   </select></div>
-  return <button className="theme-toggle" onClick={() => choose(theme === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}>
-    {theme === 'dark' ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}<span>{theme === 'dark' ? 'Tema claro' : 'Tema escuro'}</span>
+  return <button className="theme-toggle" onClick={() => choose(colorScheme === 'dark' ? 'light' : 'dark')} aria-label={colorScheme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}>
+    {colorScheme === 'dark' ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}<span>{colorScheme === 'dark' ? 'Tema claro' : 'Tema escuro'}</span>
   </button>
 }

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/shared/lib/utils'
+import { cn } from '@/global/lib/utils'
 
 // shadcn/ui Button pattern, styled with Seryn's approved tokens.
 const variants = cva('inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50', {

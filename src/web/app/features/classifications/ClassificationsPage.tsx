@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { Check, CreditCard, Pencil, Plus, Tag, Trash2, X } from 'lucide-react'
-import { ApiError, get, patch, post, remove } from '@/shared/api/client'
-import { Button } from '@/shared/ui/Button'
+import { ApiError, get, patch, post, remove } from '@/global/api/client'
+import { Button } from '@/global/ui/Button'
 
 type Classification = { id: string; nome: string }
 type Kind = 'types' | 'payment-methods'
