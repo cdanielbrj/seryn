@@ -5,12 +5,24 @@ namespace Seryn.Server.Modules.Projections;
 
 public static class ProjectionsModule
 {
-    public static IServiceCollection AddProjectionsModule(this IServiceCollection services) =>
-        services.AddScoped<DashboardProjectionService>();
-
-    public static void MapProjectionsModule(this RouteGroupBuilder api) => api.MapGet("/projections", async ([AsParameters] ProjectionQuery query, DashboardProjectionService service) =>
+    public static IServiceCollection AddProjectionsModule(this IServiceCollection services)
     {
-        var result = await service.Get(query);
-        return result.Errors is null ? Results.Ok(result.Value) : Results.ValidationProblem(result.Errors);
-    }).WithTags("Projeções");
+        services.AddScoped<DashboardProjectionService>();
+        services.AddScoped<AnalysisProjectionService>();
+        return services;
+    }
+
+    public static void MapProjectionsModule(this RouteGroupBuilder api)
+    {
+        api.MapGet("/projections", async ([AsParameters] ProjectionQuery query, DashboardProjectionService service) =>
+        {
+            var result = await service.Get(query);
+            return result.Errors is null ? Results.Ok(result.Value) : Results.ValidationProblem(result.Errors);
+        }).WithTags("Projeções");
+        api.MapGet("/analyses", async ([AsParameters] AnalysisQuery query, AnalysisProjectionService service) =>
+        {
+            var result = await service.Get(query);
+            return result.Errors is null ? Results.Ok(result.Value) : Results.ValidationProblem(result.Errors);
+        }).WithTags("Análises");
+    }
 }

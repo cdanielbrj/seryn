@@ -2,6 +2,8 @@
 
 The files under `prototypes/` are the approved visual references for Seryn. The interactive HTML prototype is the primary reference, supported by desktop and mobile screenshots in light and dark modes.
 
+The v2 prototype remains the visual source for the dashboard and persistent shell. The later Análises area is an approved responsive extension defined by the product specification; it reuses the established shell, tokens, panels, period controls, and accessibility contracts without changing the dashboard prototype.
+
 ## Source-of-truth order
 
 1. The [product specification](../product/SERYN_SPEC.md) defines behavior, financial semantics, public language, and acceptance criteria.

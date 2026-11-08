@@ -7,6 +7,7 @@ import { DashboardRoute } from '@/modules/dashboard/routes/DashboardRoute'
 import { RecordFormRoute } from '@/modules/records/routes/RecordFormRoute'
 import { RecordsRoute } from '@/modules/records/routes/RecordsRoute'
 import { PreferencesRoute } from '@/modules/settings/routes/PreferencesRoute'
+import { AnalysesRoute } from '@/modules/analyses/routes/AnalysesRoute'
 
 export function AppRouter({ username, onLogout }: { username: string; onLogout: () => void }) {
   return <Routes>
@@ -14,6 +15,7 @@ export function AppRouter({ username, onLogout }: { username: string; onLogout: 
     <Route path="/registros" element={<RecordsRoute />} />
     <Route path="/registros/novo" element={<RecordFormRoute />} />
     <Route path="/registros/:id/editar" element={<RecordFormRoute />} />
+    <Route path="/analises" element={<AnalysesRoute />} />
     <Route path="/pagamentos" element={<ClassificationsRoute key="payment-methods" kind="payment-methods" />} />
     <Route path="/categorias" element={<CategoriesRoute />} />
     <Route path="/tipos" element={<ClassificationsRoute key="types" kind="types" />} />

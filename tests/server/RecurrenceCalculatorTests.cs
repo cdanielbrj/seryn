@@ -18,6 +18,8 @@ public sealed class RecurrenceCalculatorTests
         Assert.Equal(6, firstSemester.Count);
         Assert.Equal(4, secondSemester.Count);
         Assert.Equal(new YearMonth(2027, 10), secondSemester[^1].Month);
+        Assert.Equal(6, RecurrenceCalculator.Count(record, new YearMonth(2027, 1), new YearMonth(2027, 6)));
+        Assert.Equal(10, RecurrenceCalculator.Count(record, record.Start, new YearMonth(2028, 12)));
     }
 
     [Theory]

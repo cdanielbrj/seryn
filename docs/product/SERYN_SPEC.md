@@ -1,6 +1,6 @@
 # Seryn — Product, architecture, and implementation specification
 
-> **Status:** approved product baseline; consolidated v0.1 technical stack (revision 2)  
+> **Status:** approved product baseline; consolidated technical stack and analyses extension (revision 3)
 > **Reference date:** November 3, 2026  
 > **Product language:** Brazilian Portuguese (`pt-BR`)  
 > **Audience:** Codex and project contributors  
@@ -73,6 +73,27 @@ All values are user-defined forecasts, not completed transactions. Do not reconc
 - Rules based on type/category text.
 - Different installment amounts inside one record; use separate records for different values.
 - Extra charts or financial indicators absent from the approved mock.
+
+### Approved extension — analyses
+
+After the original v0.1 dashboard, Seryn adds an authenticated **Análises** area for investigating the composition of projected values. It does not introduce actual transactions, balances, budgets, payment execution, or persisted aggregates.
+
+- Use the same month, semester, and year civil periods and the same recurrence engine as the dashboard.
+- Filter by all movements, income, or expenses.
+- Segment projected occurrences by root category, payment method, or type.
+- Optionally cross the primary dimension with one different dimension.
+- Show projected amount, percentage of the filtered volume, original-record count, occurrence count, and the original records composing each segment.
+- For a finite recurring record, show its total installment count and how many installments are projected through the end of the selected period. This is recurrence progress, never confirmation that an installment was paid.
+- When both directions are selected, percentage basis is total projected volume (`income + expenses`), not the net result. With one direction selected, it is that direction's total.
+- Keep income and expense distinguishable and calculate result as projected income minus projected expenses under the active filter.
+- Derive every result at query time. Never persist analysis totals or expanded occurrences.
+- Use wording such as planned values, projected impact, and composition. Never claim actual spending, available money, affordability, or a bank balance.
+
+The desktop sidebar and mobile primary navigation include **Análises**. The approved v2 dashboard remains unchanged; this area has its own responsive composition.
+
+### Approved future direction — plans
+
+**Planejamentos** will support multiple non-definitive tests, estimates, calculations, and simulations of financial actions. Plans are not original financial records and do not affect projections until an explicit future conversion flow creates a record. Wishlist items and acquisition scenarios belong to this future capability. Its persistence model, lifecycle, simulation rules, and UI remain subject to product-owner confirmation and are not part of the analyses increment.
 
 ## 4. Conceptual data contract
 
@@ -328,6 +349,7 @@ PATCH/DELETE             /api/v1/types/{id}
 GET/POST                 /api/v1/categories
 PATCH/DELETE             /api/v1/categories/{id}
 GET                      /api/v1/projections?period=month|semester|year&reference=YYYY-MM
+GET                      /api/v1/analyses?period=month|semester|year&reference=YYYY-MM&direction=all|income|expense&primary=category|payment|type&secondary=none|category|payment|type
 POST                     /api/v1/import/preview
 POST                     /api/v1/import/commit
 GET                      /api/v1/export/records?format=csv|xlsx|xls
@@ -390,6 +412,15 @@ Acceptance: all Section 5 numeric examples pass and chart end equals income minu
 - Integration, mobile UX, Unraid, and upgrade documentation.
 
 Acceptance: export → clear test database → import reproduces records/projections; container replacement preserves data; anonymous access remains impossible.
+
+### Current extension — analyses
+
+- Add the responsive Análises destination to desktop and mobile navigation.
+- Query finite projected occurrences by period and direction.
+- Segment by category, payment method, or type, with an optional second-dimension crossing.
+- Drill each segment down to its original records without creating analysis rows in SQLite.
+
+Acceptance: analysis totals equal projections for the same period and direction; percentages use the documented volume basis; occurrence and original-record counts remain distinct; finite recurrence progress reports projected installments without implying payment; category, payment, and type crossings are derived from persisted records.
 
 ### Phase 4 — v0.1 polish
 

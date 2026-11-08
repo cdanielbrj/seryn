@@ -52,6 +52,25 @@ public sealed class ProjectionTests : IDisposable
         Assert.Equal("GPU", Assert.Single(semester.MaioresSaidas).Nome);
         Assert.Equal(6, semester.MaioresSaidas.Single().Ocorrencias);
 
+        var analysis = await client.GetFromJsonAsync<AnalysisProjection>("/api/v1/analyses?period=semester&reference=2027-02&direction=expense&primary=category&secondary=payment");
+        Assert.NotNull(analysis);
+        Assert.Equal(450_000, analysis.SaidasCentavos);
+        Assert.Equal(-450_000, analysis.ResultadoCentavos);
+        Assert.Equal(1, analysis.Registros);
+        Assert.Equal(6, analysis.Ocorrencias);
+        var segment = Assert.Single(analysis.Segmentos);
+        Assert.Equal("Software", segment.Nome);
+        Assert.Equal(100, segment.Percentual);
+        Assert.Equal("Pix", Assert.Single(segment.Cruzamentos).Nome);
+        var analysisRecord = Assert.Single(segment.Detalhes);
+        Assert.Equal("GPU", analysisRecord.Nome);
+        Assert.Equal(10, analysisRecord.ParcelasTotais);
+        Assert.Equal(6, analysisRecord.ParcelasPrevistasAteFim);
+
+        var invalidAnalysis = await client.GetAsync("/api/v1/analyses?period=month&reference=2027-02&direction=all&primary=type&secondary=type");
+        Assert.Equal(HttpStatusCode.BadRequest, invalidAnalysis.StatusCode);
+        Assert.Contains("secondary", (await invalidAnalysis.Content.ReadFromJsonAsync<ValidationProblemDetails>())!.Errors.Keys);
+
         var beforeStart = await client.GetFromJsonAsync<DashboardProjection>("/api/v1/projections?period=month&reference=2026-12");
         Assert.NotNull(beforeStart);
         Assert.Equal(0, beforeStart.EntradasCentavos);
