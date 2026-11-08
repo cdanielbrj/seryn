@@ -17,6 +17,12 @@ public sealed record ProjectedOccurrence(ProjectionRecord Record, YearMonth Mont
 /// <summary>Pure month-based recurrence calculation with no HTTP, EF Core, or persistence dependency.</summary>
 public static class RecurrenceCalculator
 {
+    public static int Count(ProjectionRecord record, YearMonth start, YearMonth end)
+    {
+        var (firstIndex, lastIndex) = IndexRange(record, start, end);
+        return lastIndex < firstIndex ? 0 : checked(lastIndex - firstIndex + 1);
+    }
+
     public static IEnumerable<ProjectedOccurrence> Project(
         IEnumerable<ProjectionRecord> records,
         YearMonth start,
@@ -25,19 +31,26 @@ public static class RecurrenceCalculator
         foreach (var record in records)
         {
             var interval = IntervalInMonths(record.Recurrence);
-            if (end.DistanceFrom(record.Start) < 0)
-                continue;
-
-            var firstIndex = Math.Max(0, CeilingDivide(start.DistanceFrom(record.Start), interval));
-            var lastIndex = end.DistanceFrom(record.Start) / interval;
-            if (record.OccurrenceCount is { } count)
-                lastIndex = Math.Min(lastIndex, count - 1);
+            var (firstIndex, lastIndex) = IndexRange(record, start, end);
             if (lastIndex < firstIndex)
                 continue;
 
             for (var index = firstIndex; index <= lastIndex; index++)
                 yield return new(record, record.Start.AddMonths(index * interval));
         }
+    }
+
+    private static (int First, int Last) IndexRange(ProjectionRecord record, YearMonth start, YearMonth end)
+    {
+        if (end.DistanceFrom(record.Start) < 0)
+            return (0, -1);
+
+        var interval = IntervalInMonths(record.Recurrence);
+        var firstIndex = Math.Max(0, CeilingDivide(start.DistanceFrom(record.Start), interval));
+        var lastIndex = end.DistanceFrom(record.Start) / interval;
+        if (record.OccurrenceCount is { } count)
+            lastIndex = Math.Min(lastIndex, count - 1);
+        return (firstIndex, lastIndex);
     }
 
     private static int IntervalInMonths(RecordRecurrence recurrence) => recurrence switch

@@ -12,7 +12,7 @@
   .mobile-header { display: flex; align-items: center; justify-content: space-between; padding: max(22px,env(safe-area-inset-top)) 21px 15px; }
   .mobile-header .brand { font-size: 23px; gap: 9px; }
   .mobile-header .brand svg { width: 26px; height: 26px; }
-  .bottom-nav { display: grid; grid-template-columns: repeat(4,1fr); position: fixed; bottom: 0; left: 0; right: 0; background: var(--sidebar); backdrop-filter: blur(20px); border-top: 1px solid var(--line); padding: 9px 7px calc(10px + env(safe-area-inset-bottom)); z-index: 30; }
+  .bottom-nav { display: grid; grid-template-columns: repeat(6,1fr); position: fixed; bottom: 0; left: 0; right: 0; background: var(--sidebar); backdrop-filter: blur(20px); border-top: 1px solid var(--line); padding: 9px 7px calc(10px + env(safe-area-inset-bottom)); z-index: 30; }
   .bottom-nav .nav-link { display: flex; flex-direction: column; justify-content: center; gap: 6px; font-size: 11px; padding: 5px 0; min-height: 52px; font-weight: 600; border-radius: 9px; }
   .bottom-nav .nav-link.active { background: transparent; color: var(--accent); }
   .bottom-nav .nav-link svg { width: 22px; height: 22px; }

@@ -15,6 +15,8 @@ The current implementation is governed by the accepted architecture decision rec
 | [ADR-006](adr/ADR-006-FRONTEND-PROJECT-STRUCTURE.md) | Frontend package and test boundaries | Accepted |
 | [ADR-007](adr/ADR-007-FRONTEND-COMPONENT-AND-THEME-ARCHITECTURE.md) | Component and theme contract | Accepted |
 | [ADR-008](adr/ADR-008-FRONTEND-APPLICATION-ARCHITECTURE.md) | Modular vertical-slice frontend | Accepted |
+| [ADR-009](adr/ADR-009-PROJECTION-ANALYSES.md) | Derived segmented analyses over projected occurrences | Accepted |
+| [ADR-010](adr/ADR-010-OBJECTIVES.md) | Independent objective storage and CRUD | Accepted |
 
 ## When to add an ADR
 

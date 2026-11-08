@@ -26,11 +26,13 @@ public sealed class SerynDbContext(DbContextOptions<SerynDbContext> options) : D
     public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
     public DbSet<FinancialCategory> FinancialCategories => Set<FinancialCategory>();
     public DbSet<FinancialRecord> FinancialRecords => Set<FinancialRecord>();
+    public DbSet<Objective> Objectives => Set<Objective>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ConfigureAuth();
         modelBuilder.ConfigureClassifications();
         modelBuilder.ConfigureFinancialRecords();
+        modelBuilder.ConfigureObjectives();
     }
 }
