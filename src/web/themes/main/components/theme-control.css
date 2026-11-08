@@ -1,0 +1,8 @@
+.theme-toggle { display: flex; align-items: center; gap: 15px; padding: 13px 15px; width: 100%; border-radius: 14px; color: var(--muted); font-size: 13px; font-weight: 620; min-height: 44px; }
+.theme-toggle svg { width: 20px; height: 20px; }
+.theme-toggle:hover { background: var(--accent-tint); }
+.theme-select { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 600; }
+@media (max-width: 700px) {
+  .mobile-header .theme-toggle { width: 44px; height: 44px; border-radius: 13px; border: 1px solid var(--line); background: var(--panel); padding: 0; display: grid; place-items: center; color: var(--fg); }
+  .mobile-header .theme-toggle span { display: none; }
+}

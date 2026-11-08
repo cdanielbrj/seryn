@@ -1,0 +1,15 @@
+.period-controls { display: flex; gap: 16px; align-items: center; }
+.segment { display: flex; align-items: center; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 13px; box-shadow: var(--shadow); }
+.segment button { min-height: 44px; padding: 10px 16px; border-radius: 9px; font-size: 13px; font-weight: 630; color: var(--muted); min-width: 65px; }
+.segment button[aria-pressed="true"] { background: var(--accent-tint); color: var(--accent); }
+.date-select { display: flex; align-items: center; gap: 6px; padding: 4px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel); box-shadow: var(--shadow); }
+.date-select span { min-width: 145px; text-align: center; font-size: 13px; font-weight: 720; }
+.date-select button { background: var(--pill); width: 44px; height: 44px; border-radius: 9px; display: grid; place-items: center; }
+.date-select svg { width: 17px; height: 17px; }
+@media (max-width: 700px) {
+  .period-controls { flex-direction: column; gap: 10px; margin-top: 17px; }
+  .date-select { order: -1; width: 100%; justify-content: space-between; padding: 5px; }
+  .date-select span { font-size: 15px; min-width: 0; }
+  .segment { width: 100%; box-shadow: none; }
+  .segment button { flex: 1; font-size: 14px; padding: 10px 8px; }
+}

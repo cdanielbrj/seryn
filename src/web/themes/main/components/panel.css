@@ -1,0 +1,5 @@
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 22px 24px; }
+.panel-heading { display: flex; gap: 12px; align-items: center; }
+.panel-heading p { font-size: 13px; color: var(--muted); margin: 0; }
+.square-icon { width: 45px; height: 45px; flex-shrink: 0; display: grid; place-items: center; background: var(--accent-tint); color: var(--accent); border-radius: 13px; }
+.square-icon svg { width: 20px; height: 20px; }

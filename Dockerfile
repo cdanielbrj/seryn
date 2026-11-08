@@ -1,11 +1,12 @@
 # syntax=docker/dockerfile:1
 FROM --platform=$BUILDPLATFORM node:24-bookworm-slim AS web-deps
-WORKDIR /web
-COPY src/Seryn.Web/package*.json ./
+WORKDIR /workspace/src/web
+COPY src/web/package*.json ./
 RUN npm ci
 
 FROM web-deps AS web-source
-COPY src/Seryn.Web/ ./
+COPY src/web/ ./
+COPY tests/web/ /workspace/tests/web/
 
 FROM web-source AS web-test
 RUN npm run lint && npm test && npm run build
@@ -16,18 +17,18 @@ RUN npm run build
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS server-build
 WORKDIR /source
 COPY global.json Directory.Build.props Seryn.slnx ./
-COPY src/Seryn.Server/Seryn.Server.csproj src/Seryn.Server/
-COPY tests/Seryn.Tests/Seryn.Tests.csproj tests/Seryn.Tests/
+COPY src/server/Seryn.Server.csproj src/server/
+COPY tests/server/Seryn.Tests.csproj tests/server/
 RUN dotnet restore Seryn.slnx
-COPY src/Seryn.Server/ src/Seryn.Server/
-COPY tests/Seryn.Tests/ tests/Seryn.Tests/
+COPY src/server/ src/server/
+COPY tests/server/ tests/server/
 
 FROM server-build AS server-test
 RUN dotnet test Seryn.slnx -c Release --no-restore
 
 FROM server-build AS publish
-COPY --from=web-build /web/dist/ src/Seryn.Server/wwwroot/
-RUN dotnet publish src/Seryn.Server -c Release --no-restore -o /app/publish /p:UseAppHost=false
+COPY --from=web-build /workspace/src/web/dist/ src/server/wwwroot/
+RUN dotnet publish src/server -c Release --no-restore -o /app/publish /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app

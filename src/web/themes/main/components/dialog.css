@@ -1,0 +1,12 @@
+.dialog-backdrop { position: fixed; inset: 0; z-index: 80; background: rgba(5,15,16,.58); display: grid; place-items: center; padding: 20px; }
+.confirm-dialog { width: min(100%,460px); background: var(--panel-solid); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 24px 70px rgba(0,0,0,.28); padding: 28px; }
+.confirm-dialog h2 { margin-top: 18px; }
+.confirm-dialog p { color: var(--muted); font-size: 14px; margin: 10px 0 25px; }
+.confirm-dialog > div:last-child { display: flex; justify-content: flex-end; gap: 10px; }
+.danger-icon { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; color: var(--rose); background: var(--rose-bg); }
+.danger-icon svg { width: 23px; }
+@media (max-width: 700px) {
+  .confirm-dialog { padding: 23px 20px; }
+  .confirm-dialog > div:last-child { flex-direction: column-reverse; }
+  .confirm-dialog button { width: 100%; }
+}

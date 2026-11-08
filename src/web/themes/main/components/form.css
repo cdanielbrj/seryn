@@ -1,0 +1,5 @@
+select, input { background: var(--panel-solid); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-height: 46px; color: var(--fg); min-width: 0; }
+input:hover, select:hover { border-color: var(--accent); }
+.form-error { background: var(--rose-bg); border-radius: 10px; padding: 12px; color: var(--rose); font-size: 13px; margin: 0; }
+.form-notice { background: var(--emerald-bg); border-radius: 10px; padding: 12px; color: var(--emerald); font-size: 13px; margin: 0; }
+.success { color: var(--emerald); margin-top: 16px; }

@@ -3,9 +3,7 @@
 **/node_modules/
 **/dist/
 **/wwwroot/
-**/test-results/
-**/playwright-report/
-artifacts/
+tests/web/artifacts/
 .env
 .data/
 *.sqlite*

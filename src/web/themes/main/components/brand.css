@@ -1,0 +1,2 @@
+.brand { display: flex; align-items: center; gap: 12px; font-size: 28px; font-weight: 750; letter-spacing: -.9px; }
+.brand svg { width: 30px; height: 32px; stroke: var(--accent); stroke-width: 2.9; stroke-linecap: round; fill: none; }
