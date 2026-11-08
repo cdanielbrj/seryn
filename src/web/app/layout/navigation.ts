@@ -8,7 +8,7 @@ export const navigation: NavigationItem[] = [
   { path: '/objetivos', label: 'Objetivos', icon: Target, mobile: true },
   { path: '/registros', label: 'Registros', icon: CalendarDays, mobile: true },
   { path: '/pagamentos', label: 'Pagamentos', icon: CreditCard },
-  { path: '/categorias', label: 'Categorias', icon: Layers, mobile: true },
+  { path: '/categorias', label: 'Categorias', icon: Layers },
   { path: '/tipos', label: 'Tipos', icon: Tag },
   { path: '/importar-exportar', label: 'Importar / Exportar', icon: ArrowLeftRight },
   { path: '/ajustes', label: 'Ajustes', icon: Settings, mobile: true },

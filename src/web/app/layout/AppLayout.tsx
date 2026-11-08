@@ -21,6 +21,6 @@ export function AppLayout({ username, onLogout }: { username: string; onLogout: 
     <a className="skip-link" href="#conteudo">Pular para conteúdo</a>
     <aside className="sidebar"><Brand /><Navigation items={navigation} label="Navegação principal" /><div className="sidebar-bottom"><ThemeControl /><p>Seryn · planejamento financeiro</p></div></aside>
     <div className="workspace"><header className="mobile-header"><Brand /><ThemeControl /></header><main id="conteudo" className="main-content"><AppRouter username={username} onLogout={onLogout} /></main></div>
-    <Navigation className="bottom-nav" items={navigation.filter(item => item.mobile)} label="Navegação mobile" />
+    <Navigation className="bottom-nav" items={navigation.filter(item => item.mobile)} label="Navegação mobile" settingsChildren />
   </div>
 }

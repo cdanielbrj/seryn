@@ -1,7 +1,7 @@
 # Seryn — Product, architecture, and implementation specification
 
-> **Status:** approved product baseline; consolidated technical stack, analyses, and objectives extensions (revision 4)
-> **Reference date:** November 3, 2026  
+> **Status:** approved product baseline; consolidated technical stack, analyses, objectives, and mobile navigation extensions (revision 5)
+> **Reference date:** November 8, 2026
 > **Product language:** Brazilian Portuguese (`pt-BR`)  
 > **Audience:** Codex and project contributors  
 > **Visual source of truth:** `docs/design/prototypes/seryn_mock_v2.html` and the reference images in the same directory
@@ -253,7 +253,7 @@ Expanded projection export, if added in v0.1, is a separate lower-priority opera
 
 ### Desktop structure to preserve
 
-1. Left sidebar: Overview, Records, Categories, Types, Import/Export, Settings (localized in pt-BR in product UI).
+1. Left sidebar primary order: Overview, Analyses, Objectives, Records, Payment Methods, Categories, Types, Import/Export, Settings (localized in pt-BR in product UI).
 2. Overview header, Month/Semester/Year selector, and date navigation.
 3. Three cards: Income, Expenses, Result.
 4. Central period-projection panel with chart and legend.
@@ -270,8 +270,8 @@ Technical alignment and semantic wording corrections are allowed. Do not replace
 - Overview title, readable date selection, and period control.
 - Prominent result first, then income and expenses as two smaller cards or stacked at narrow widths.
 - Short initial record list (for example, three occurrences) with a “view all” action.
-- Categories available through navigation; the overview need not show the donut.
-- Fixed bottom navigation: Overview, Records, Categories, Settings. Types and Import/Export remain explicitly reachable through Settings or another clear route.
+- Categories remain explicitly reachable through the Organization section in Settings; the overview need not show the donut.
+- Fixed bottom navigation, matching the desktop primary order: Overview, Analyses, Objectives, Records, Settings. Organization destinations (Categories, Types, and Payment Methods) and Import/Export remain explicitly reachable through Settings.
 - Respect `safe-area-inset-bottom`, keep content above the bar, use readable text, and target roughly 44×44 CSS-pixel touch areas.
 
 ### Tokens and identity

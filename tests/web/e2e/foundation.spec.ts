@@ -16,6 +16,8 @@ test('acesso, layout v2, temas, navegação e saída', async ({ page }, testInfo
   const nav = page.getByRole('navigation', { name: mobile ? 'Navegação mobile' : 'Navegação principal', exact: true })
   await expect(nav).toBeVisible()
   if (mobile) {
+    await expect(nav.getByRole('link')).toHaveCount(5)
+    expect(await nav.getByRole('link').allTextContents()).toEqual(['Visão Geral', 'Análises', 'Objetivos', 'Registros', 'Ajustes'])
     await expect(page.getByText('Resultado previsto', { exact: true })).toBeVisible()
     await expect(page.locator('.projection-panel')).toBeHidden()
     const result = await page.locator('.stat.result').boundingBox()
@@ -57,7 +59,13 @@ test('acesso, layout v2, temas, navegação e saída', async ({ page }, testInfo
     await expect(page.getByText('Nenhum pagamento cadastrado')).toBeVisible()
   }
 
-  await nav.getByRole('link', { name: 'Categorias', exact: true }).click()
+  if (mobile) {
+    await nav.getByRole('link', { name: 'Ajustes', exact: true }).click()
+    await page.locator('.settings-links').getByRole('link', { name: 'Categorias', exact: true }).click()
+    await expect(nav.getByRole('link', { name: 'Ajustes', exact: true })).toHaveAttribute('aria-current', 'page')
+  } else {
+    await nav.getByRole('link', { name: 'Categorias', exact: true }).click()
+  }
   await expect(page.getByRole('heading', { name: 'Categorias', exact: true })).toBeVisible()
   await page.getByLabel('Nome', { exact: true }).fill('Software')
   await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
