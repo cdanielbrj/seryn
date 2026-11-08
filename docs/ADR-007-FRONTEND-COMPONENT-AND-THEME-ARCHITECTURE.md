@@ -12,11 +12,7 @@ The frontend must allow its visual identity to change without duplicating applic
 
 Treat `src/web/app` as the structural and behavioral contract and `src/web/themes` as concrete visual implementations of that contract.
 
-Application code remains organized into:
-
-- `core` for composition, routing, and application shell behavior;
-- `features` for product capabilities and their component trees;
-- `global` for API access, utilities, and UI contracts reused across features.
+Application code follows the roles and dependency direction defined by [ADR-008](ADR-008-FRONTEND-APPLICATION-ARCHITECTURE.md). That organization distinguishes reusable React contracts, persistent layout, product modules, and technical infrastructure without changing the theme boundary.
 
 React components expose stable semantic class names, slots, states, and data attributes. They do not import concrete theme CSS. A theme implements those selectors and may change layout, spacing, typography, color, and responsive presentation without changing application behavior.
 
