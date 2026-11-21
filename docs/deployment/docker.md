@@ -46,6 +46,8 @@ The database, administrator, sessions, and Data Protection keys live under `/dat
 
 Before upgrades that include migrations, keep a consistent copy of the volume. Until the application provides a validated online backup flow, stop the container and copy the complete volume with the host backup tool. Include SQLite auxiliary files and keys; never copy only `seryn.sqlite` while WAL mode is active. Restore only while the application is stopped and preserve ownership and permissions.
 
+The workbook operations described in [User-data portability](portability.md) copy user-entered data, but they are not host backups: they exclude credentials, sessions, keys, and deployment state.
+
 ## Image architecture
 
 Build an amd64 image explicitly on an arm64 host with:

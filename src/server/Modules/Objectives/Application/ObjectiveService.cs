@@ -49,7 +49,7 @@ internal sealed class ObjectiveService(SerynDbContext db, TimeProvider clock)
         return ObjectiveFailure.None;
     }
 
-    private static (PreparedObjective? Value, Dictionary<string, string[]> Errors) Prepare(ObjectiveCommand command)
+    internal static (PreparedObjective? Value, Dictionary<string, string[]> Errors) Prepare(ObjectiveCommand command)
     {
         var errors = new Dictionary<string, string[]>();
         var name = command.Nome?.Trim().Normalize(NormalizationForm.FormC) ?? "";
@@ -68,7 +68,7 @@ internal sealed class ObjectiveService(SerynDbContext db, TimeProvider clock)
         return errors.Count > 0 || interest is null ? (null, errors) : (new(name, command.ValorEstimadoCentavos, interest.Value, command.Prioridade, link, notes, desiredMonth?.Year, desiredMonth?.Month), errors);
     }
 
-    private static void Apply(Objective entity, PreparedObjective value)
+    internal static void Apply(Objective entity, PreparedObjective value)
     {
         entity.Name = value.Name; entity.EstimatedValueCents = value.ValueCents; entity.Interest = value.Interest; entity.Priority = value.Priority;
         entity.Link = value.Link; entity.Notes = value.Notes; entity.DesiredYear = value.DesiredYear; entity.DesiredMonth = value.DesiredMonth;
@@ -80,5 +80,5 @@ internal sealed class ObjectiveService(SerynDbContext db, TimeProvider clock)
     private static int InterestRank(ObjectiveInterest value) => value switch { ObjectiveInterest.Desired => 2, ObjectiveInterest.Considered => 1, _ => 0 };
     private static string? EmptyToNull(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim().Normalize(NormalizationForm.FormC);
     private static (int Year, int Month)? ParseMonth(string value) => DateOnly.TryParseExact(value, "yyyy-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) && value.Length == 7 ? (date.Year, date.Month) : null;
-    private sealed record PreparedObjective(string Name, long ValueCents, ObjectiveInterest Interest, int Priority, string? Link, string? Notes, int? DesiredYear, int? DesiredMonth);
+    internal sealed record PreparedObjective(string Name, long ValueCents, ObjectiveInterest Interest, int Priority, string? Link, string? Notes, int? DesiredYear, int? DesiredMonth);
 }

@@ -1,14 +1,14 @@
 # Seryn — Product, architecture, and implementation specification
 
-> **Status:** approved product baseline; consolidated technical stack, analyses, and objectives extensions (revision 4)
-> **Reference date:** November 3, 2026  
+> **Status:** approved product baseline; consolidated technical stack, analyses, objectives, and user-data portability (revision 6)
+> **Reference date:** November 21, 2026
 > **Product language:** Brazilian Portuguese (`pt-BR`)  
 > **Audience:** Codex and project contributors  
 > **Visual source of truth:** `docs/design/prototypes/seryn_mock_v2.html` and the reference images in the same directory
 
 ## 0. Primary implementation instruction
 
-Build **Seryn** as a self-hosted web application, installable as an iPhone PWA, distributed as one Docker container with SQLite persisted in an external volume. Follow this document strictly. The v0.1 visual experience follows the approved v2 prototype. Do not introduce accounting, banking, or payment-tracking behavior that is absent from this specification.
+Build **Seryn** as a self-hosted web application, installable as an iPhone PWA, distributed as one Docker container with SQLite persisted in an external volume. Follow this document strictly. The current visual experience follows the approved v2 prototype. Do not introduce accounting, banking, or payment-tracking behavior that is absent from this specification.
 
 Priority order: projection-engine correctness; data protection, integrity, and portability; mobile UX; visual fidelity; extras. The interface may be refined, but it must never hide an incorrect financial rule.
 
@@ -22,7 +22,7 @@ This document defines product behavior. SQL schema, components, and routes are e
 - Value proposition: show expected income and expenses over a month, semester, or year, grouped by type, category, and direction.
 - Visual identity: independent from Warden, Raven, and Aira.
 - Product principle: **record once, project for the selected period**.
-- Initial currency and locale: BRL and `pt-BR`. v0.1 has no currency conversion.
+- Initial currency and locale: BRL and `pt-BR`. The current product has no currency conversion.
 
 ### What Seryn is not
 
@@ -36,14 +36,14 @@ All values are user-defined forecasts, not completed transactions. Do not reconc
 2. **Value is always per occurrence.** SQLite stores the unit amount. A series total is derived.
 3. **Recurrence is independent of type and category.** A `Purchase` need not be installment-based, a `Subscription` need not be infinite, and `Income` may occur once. Classifications are editable and never drive financial rules.
 4. **Never materialize projected entries.** Do not store one row per future day/week/month. Calculate occurrences only for a requested finite range.
-5. **No payment state.** v0.1 must not include fields, screens, indicators, or terminology such as paid, settled, overdue, completed, or pending when they imply execution tracking.
-6. **Portable and round-trippable.** CSV and Excel import/export are core features.
+5. **No payment state.** The product must not include fields, screens, indicators, or terminology such as paid, settled, overdue, completed, or pending when they imply execution tracking.
+6. **Portable and round-trippable.** Complete spreadsheet import/export is a core feature.
 7. **Truly responsive.** Mobile uses its own composition instead of scaling down desktop.
 8. **One real container.** No PostgreSQL, Redis, separate worker, or external service is required.
 9. **Simple and extensible.** Do not pre-build abstractions, entities, or screens for future features.
 10. **Never invent data.** Totals, charts, categories, and lists come exclusively from persisted records, except explicitly marked development-only demo data.
 
-## 3. v0.1 functional scope
+## 3. Current functional scope
 
 ### Required
 
@@ -57,8 +57,8 @@ All values are user-defined forecasts, not completed transactions. Do not reconc
 - Desktop v2 layout: summary, projection chart, category distribution, and projected records.
 - Mobile v2 layout: prominent result, income/expenses, a short record list, and fixed bottom navigation.
 - Accessible light and dark themes.
-- Import/export of original records in CSV, `.xlsx`, and legacy `.xls`, with tested compatibility.
-- Import preview/validation and explicit duplicate handling.
+- Export of complete user data in `.xlsx` and import compatibility with `.xlsx`/`.xlsm`.
+- Import preview/validation, duplicate-safe merge, and transactional complete replacement.
 - iPhone-installable PWA metadata, icons, and viewport behavior.
 - SQLite backup/restore and persistence across container replacement/upgrades.
 - Local single-user authentication before financial operations become available, with safe local and reverse-proxy deployment.
@@ -76,7 +76,7 @@ All values are user-defined forecasts, not completed transactions. Do not reconc
 
 ### Approved extension — analyses
 
-After the original v0.1 dashboard, Seryn adds an authenticated **Análises** area for investigating the composition of projected values. It does not introduce actual transactions, balances, budgets, payment execution, or persisted aggregates.
+Alongside the original dashboard, Seryn provides an authenticated **Análises** area for investigating the composition of projected values. It does not introduce actual transactions, balances, budgets, payment execution, or persisted aggregates.
 
 - Use the same month, semester, and year civil periods and the same recurrence engine as the dashboard.
 - Filter by all movements, income, or expenses.
@@ -112,19 +112,19 @@ Each record represents one positive amount occurring according to a temporal rul
 
 | Attribute | Meaning | Rule |
 | --- | --- | --- |
-| Stable identifier | Identifies the original record across export/reimport | UUID or equivalent, generated by the system |
+| Stable identifier | Internal identity of the persisted record | UUID or equivalent, generated by the system; not part of the portable workbook |
 | Description | Free name such as `Salary A`, `Netflix`, `GPU purchase` | Required |
 | Direction | `entrada` (income) or `saida` (expense) in the public pt-BR contract | Required; determines projection sign |
 | Per-occurrence amount | Example: `750,00` | Required and positive; stored as integer cents |
-| Start | Year/month, with optional day where appropriate | Required; never infer a persisted end date |
-| Frequency | Once, daily, weekly, monthly, or yearly | Required; custom intervals may use every N units |
+| Start | Year/month | Required; never infer a persisted end date |
+| Frequency | Once, monthly, quarterly, semiannual, or annual | Required; every recurrence is evaluated at month granularity |
 | Occurrence count | Positive integer or unlimited | `1` is one-time; `null` is unlimited |
-| Type | Example: Income, Purchase, Subscription, Business | Editable classification only |
-| Category | Example: Work, Hardware, Housing | Editable classification only |
-| Notes | Optional free context | Never changes projection behavior |
+| Type | Example: Income, Purchase, Subscription, Business | Required editable classification; never determines behavior |
+| Category | Example: Work, Hardware, Housing | Optional editable root/child classification; never determines behavior |
+| Payment method | Example: Pix, card, cash | Required editable classification; never implies payment state |
 | Technical timestamps | Created/updated | Basic technical audit, never financial dates |
 
-Suggested storage uses `records`, `types`, and `categories` with versioned migrations. Types/categories may be optional; the UI then shows the pt-BR equivalents of “No type” and “No category.” Renaming or deleting a classification must not delete records.
+Storage uses records and editable type, category, and payment-method classifications with versioned migrations. Type and payment method are required for each record; category is optional. Renaming a classification must preserve its records, and a classification in use cannot be deleted around referential rules.
 
 ### Canonical example
 
@@ -136,7 +136,6 @@ direcao: saida
 valor_por_ocorrencia: 750.00  # UI/file; SQLite stores 75000 cents
 inicio: 2027-01
 frequencia: mensal
-intervalo: 1
 quantidade: 10
 tipo: Compra
 categoria: Hardware
@@ -151,7 +150,7 @@ The same model also represents:
 - R$2,000 one-time sale: income, `200000` cents, `quantidade=1`.
 - Six R$3,000 contract receipts: income, `300000` cents, monthly, `quantidade=6`.
 
-The UI may optionally accept either per-occurrence value or total plus count. The latter must convert to an exact cent amount before persistence. Do not persist a second total field. If division is not exact in cents, explain the restriction or ask for the per-occurrence value; never hide a remainder.
+The UI may accept either per-occurrence value or an estimated total plus count. The latter is divided and rounded to the nearest cent before persistence. Do not persist a second total field or imply that these planning estimates are accounting-exact.
 
 ## 5. Recurrence engine — single calculation source
 
@@ -178,11 +177,9 @@ project(records, period_start, period_end, filters)
 - Semester: January–June or July–December of the reference year.
 - Year: January–December.
 - Navigation moves 1 month, 6 months, or 1 year according to the selected period.
-- A start may have `YYYY-MM` precision. Daily and weekly frequencies require an exact day.
-- When monthly/yearly records omit the day, never display an invented due date. A daily chart may use a clearly disclosed visual approximation such as the first of the month; it is not a recorded date.
-- A 29th/30th/31st anchor moves to the last available day in shorter months without changing its original anchor: Jan 31 → Feb 28/29 → Mar 31.
-- Annual Feb 29 recurrence uses Feb 28 in non-leap years and returns to Feb 29 in leap years.
-- Use civil-date types without timezone semantics, such as `DateOnly`. Avoid UTC/DST recurrence bugs.
+- Starts and projected occurrences use `YYYY-MM` precision. The current engine has no daily or weekly recurrence contract.
+- Once, monthly, quarterly, semiannual, and annual recurrences advance by whole calendar months.
+- Do not invent a persisted or displayed day. Future finer granularity requires a separate product decision and migration path.
 
 ### Chart semantics
 
@@ -190,7 +187,7 @@ The mock's illustrative “projected balance” is larger than its period result
 
 - Plot cumulative expected result within the selected period, starting at zero.
 - The final chart value must equal the period result.
-- When daily placement is inappropriate because dates omit a day, aggregate by month while preserving the chart block and explain the temporal axis.
+- Aggregate the temporal axis by month, matching the persisted precision.
 - Never use labels promising bank balance, availability, or spendable money.
 
 ### Required numeric tests
@@ -206,37 +203,27 @@ The mock's illustrative “projected balance” is larger than its period result
 | R$8,000 unlimited monthly income from January | first semester | +R$48,000 |
 | R$2,000 one-time February income | March | R$0 |
 
-Also test counts of 1 and large counts, year boundaries, every-N-month intervals, weekly frequency, day 31, February/leap years, both directions, and empty periods. Monetary arithmetic always uses integer cents; never use floating-point arithmetic.
+Also test counts of 1 and large counts, year boundaries, quarterly/semiannual/annual steps, both directions, and empty periods. Monetary arithmetic always uses integer cents; never use floating-point arithmetic.
 
 ## 6. Import, export, and backup
 
 ### Source of truth
 
-SQLite is the operational source of truth. Import creates/updates original records in SQLite. Export produces a portable snapshot of original records, not expanded virtual occurrences.
+SQLite is the operational source of truth. Export produces a portable snapshot of user-entered records, objectives, and classifications, not expanded virtual occurrences or host state. Import writes validated originals back through the same application rules.
 
-### File round-trip
+### Workbook round-trip
 
-- CSV is UTF-8 with headers. Prefer `;` for pt-BR, allow configuration/autodetection, accept values such as `750,00`, and parse thousands separators correctly.
-- Import/export `.xlsx` and legacy `.xls` with appropriate libraries and compatibility tests. Document any legacy limitation honestly.
-- Export stable IDs, description, direction, per-occurrence value, start date, frequency, interval, limit, type, category, and notes. Never export a calculated total as the original value.
-- Import the same fields with column mapping and preview before commit. Partially validated data must never compromise the database.
-- Known IDs allow confirmed upsert; new IDs create records. Missing IDs require explicit possible-duplicate handling. Reimporting an intact export must not silently duplicate records.
-- Preview classifications that do not exist and allow controlled creation.
-- CSV must open safely in Brazilian Excel and neutralize formula injection in text fields.
-- Reject invalid amounts, zero/negative counts, unknown frequencies, and incompatible dates with intelligible row errors. Summarize accepted/rejected rows.
-- Limit upload size/volume and validate all input.
-
-Illustrative CSV:
-
-```csv
-id;descricao;direcao;valor;inicio;frequencia;intervalo;quantidade;tipo;categoria
-;Compra de GPU;saida;750,00;2027-01;mensal;1;10;Compra;Hardware
-;Salário A;entrada;8000,00;2027-01;mensal;1;;Renda;Trabalho
-```
-
-Empty `quantidade` means unlimited; `quantidade=1` means one occurrence. Missing IDs are generated. Internal column names may differ only if public round-trip remains equivalent and documented.
-
-Expanded projection export, if added in v0.1, is a separate lower-priority operation named clearly as a period projection. It must not be mistaken for reimportable original records.
+- Export one canonical `.xlsx` workbook with separate `Registros`, `Objetivos`, `Tipos`, `Categorias`, and `Pagamentos` sheets.
+- Import `.xlsx` and `.xlsm`; macros are never executed or persisted. Formulas in recognized Seryn columns are rejected.
+- Do not export internal IDs. Relationships use readable classification names, and record rows remain self-contained enough to reconstruct them.
+- Require exact Seryn headers and values in recognized sheets. Ignore unknown sheets and presentation details rather than assigning them product semantics.
+- Preview new and equivalent rows before commit. Exact equivalents must not duplicate silently.
+- Merge creates new rows while preserving current data. Missing sheets are allowed and never imply deletion.
+- Complete replacement requires all five sheets and a separate destructive confirmation. It deletes only user-entered records, objectives, and classifications, then imports the workbook in the same transaction.
+- Replacement and merge never change the local user, credentials, sessions, keys, access information, or deployment configuration.
+- Reject invalid amounts, zero/negative counts, unknown recurrences, incompatible month values, formulas, and conflicting classifications with intelligible errors before mutation.
+- Limit workbook uploads to 10 MB and validate all input.
+- Expanded projection export, if added later, is a separate operation named clearly as a period projection and must not be reimported as original data.
 
 ### Database recovery and migrations
 
@@ -253,7 +240,7 @@ Expanded projection export, if added in v0.1, is a separate lower-priority opera
 
 ### Desktop structure to preserve
 
-1. Left sidebar: Overview, Records, Categories, Types, Import/Export, Settings (localized in pt-BR in product UI).
+1. Left sidebar primary order: Overview, Analyses, Objectives, Records, Payment Methods, Categories, Types, Export, Import, Settings (localized in pt-BR in product UI).
 2. Overview header, Month/Semester/Year selector, and date navigation.
 3. Three cards: Income, Expenses, Result.
 4. Central period-projection panel with chart and legend.
@@ -270,8 +257,8 @@ Technical alignment and semantic wording corrections are allowed. Do not replace
 - Overview title, readable date selection, and period control.
 - Prominent result first, then income and expenses as two smaller cards or stacked at narrow widths.
 - Short initial record list (for example, three occurrences) with a “view all” action.
-- Categories available through navigation; the overview need not show the donut.
-- Fixed bottom navigation: Overview, Records, Categories, Settings. Types and Import/Export remain explicitly reachable through Settings or another clear route.
+- Categories remain explicitly reachable through the Organization section in Settings; the overview need not show the donut.
+- Fixed bottom navigation, matching the desktop primary order: Overview, Analyses, Objectives, Records, Settings. Organization destinations (Categories, Types, and Payment Methods) plus separate Export and Import destinations remain explicitly reachable through Settings.
 - Respect `safe-area-inset-bottom`, keep content above the bar, use readable text, and target roughly 44×44 CSS-pixel touch areas.
 
 ### Tokens and identity
@@ -315,10 +302,8 @@ Do not create microservices, queues, Redis, remote databases, multiple servers, 
 | Persistence | SQLite + EF Core SQLite 10 | Versioned migrations |
 | Recurrence | Pure C# module | No HTTP, React, or EF dependency |
 | Money | `long` integer cents | Never float/double |
-| Financial dates | Civil dates and explicit calendar | `DateOnly` where a day exists |
-| CSV | CsvHelper or established equivalent | Culture and formula safety |
-| `.xlsx` | ClosedXML or equivalent | Tested read/write |
-| `.xls` | NPOI/HSSF or equivalent | Do not claim support without tests |
+| Financial dates | Calendar year/month | No invented day or timezone semantics |
+| `.xlsx` / `.xlsm` | ClosedXML or equivalent | Canonical XLSX export; tested OpenXML import |
 | Distribution | Multi-stage Docker | One image, process, container, `/data` volume |
 
 Native AOT and chiseled images are not required. Use official, patched .NET 10 SDK/ASP.NET images. Produce linux/amd64, and arm64 when builds/tests permit.
@@ -348,7 +333,7 @@ Suggested repository structure keeps one server project and one test project, wi
 
 ### Shared application flow
 
-UI, file import, and future integrations must all use the same application service and validation. Import converts rows into the same internal command and writes transactionally; it never bypasses rules with direct database writes. Future Aira/external adapters and API credentials remain outside v0.1.
+UI, file import, and future integrations must all use the same application service and validation. Import converts rows into the same internal command and writes transactionally; it never bypasses rules with direct database writes. Future Aira/external adapters and API credentials remain outside the current scope.
 
 Reference REST surface:
 
@@ -363,9 +348,9 @@ GET                      /api/v1/projections?period=month|semester|year&referenc
 GET                      /api/v1/analyses?period=month|semester|year&reference=YYYY-MM&direction=all|income|expense&primary=category|payment|type&secondary=none|category|payment|type
 GET/POST                 /api/v1/objectives
 GET/PATCH/DELETE         /api/v1/objectives/{id}
-POST                     /api/v1/import/preview
-POST                     /api/v1/import/commit
-GET                      /api/v1/export/records?format=csv|xlsx|xls
+GET                      /api/v1/portability/export.xlsx
+POST                     /api/v1/portability/workbook/preview
+POST                     /api/v1/portability/workbook/commit
 POST/GET                 /api/v1/backups
 POST                     /api/v1/backups/restore
 ```
@@ -389,7 +374,7 @@ Names may vary modestly, but `/api/v1`, semantics, authentication, validation, D
 - Cookies are HttpOnly, Secure under HTTPS, and appropriately SameSite. Protect cookie-authenticated mutations from CSRF, and address XSS, brute force, path traversal, and upload limits.
 - Support LAN/Tailscale and trusted HTTPS proxies without requiring a specific provider. Trust forwarded headers only from configured proxies.
 - Authentication exists before real financial data and CRUD are exposed.
-- PWA caching is limited to safe static assets. v0.1 has no offline writes or synchronization.
+- PWA caching is limited to safe static assets. The current product has no offline writes or synchronization.
 
 ### Operational documentation
 
@@ -419,12 +404,12 @@ Acceptance: all Section 5 numeric examples pass and chart end equals income minu
 
 ### Phase 3 — Portability and robustness
 
-- CSV/XLSX/XLS import/export, preview, row errors, duplicates, and round-trip.
+- Complete XLSX export and XLSX/XLSM import with preview, validation, duplicate-safe merge, and transactional replacement.
 - Backup/restore and volume documentation.
 - Authentication/session/upload security tests.
 - Integration, mobile UX, Unraid, and upgrade documentation.
 
-Acceptance: export → clear test database → import reproduces records/projections; container replacement preserves data; anonymous access remains impossible.
+Acceptance: export → import into an empty test database reproduces records, objectives, and classifications; reimport does not duplicate equivalents; confirmed replacement preserves only workbook user data while authentication remains intact; container replacement preserves data; anonymous access remains impossible.
 
 ### Current extension — analyses
 
@@ -443,7 +428,7 @@ Acceptance: analysis totals equal projections for the same period and direction;
 
 Acceptance: required and optional fields follow the approved contract; interest remains a classification rather than a workflow; priority accepts only `-3` through `+3`; inclusion date survives edits and restarts; objective mutations do not change any financial result.
 
-### Phase 4 — v0.1 polish
+### Phase 4 — product polish
 
 - Validate Safari/iOS rendering and PWA installation.
 - Review keyboard, focus, contrast, touch, scrolling, and safe areas.
@@ -461,7 +446,7 @@ Acceptance: required and optional fields follow the approved contract; interest 
 - Semesters are Jan–Jun/Jul–Dec; series do not leak before start or after finite end.
 - No payment status exists in database, API, or UI.
 - Editable classifications do not alter calculations or destroy records.
-- CSV/Excel round-trip preserves unit value, recurrence, and classifications.
+- Workbook round-trip preserves records, objectives, classifications, unit values, and recurrence rules without exporting internal IDs.
 - Reimport never silently duplicates; row errors are explicit.
 - Restored SQLite reproduces data.
 - One Docker container/process serves React and `/api/v1`, with SQLite under `/data`.
@@ -477,9 +462,9 @@ Acceptance: required and optional fields follow the approved contract; interest 
 
 Minor component choices, module folders, forms, and spreadsheet libraries are engineering details so long as they meet this contract. Do not change without discussion: React + ASP.NET Core 10 + EF Core 10 + SQLite; one modular monolith/container; per-occurrence integer value; no payment state; month/semester/year periods; one record model; exportable originals; v2 desktop/mobile composition; independent identity; all values forecast-only.
 
-Future possibilities outside v0.1 include advanced grouping, alternative scenarios, period comparisons, offline synchronization, multiple currencies/users, external importers, and ecosystem integrations. Do not anticipate them artificially.
+Future possibilities outside the current scope include advanced grouping, alternative scenarios, period comparisons, offline synchronization, multiple currencies/users, external importers, and ecosystem integrations. Do not anticipate them artificially.
 
-Items to validate later without blocking foundation work: real legacy `.xls` fidelity, physical Safari/iOS PWA/safe-area behavior, access recovery strategy, and WAL-aware backup integrity. Never mark an untested capability complete.
+Items to validate later without blocking foundation work: physical Safari/iOS PWA/safe-area behavior, access recovery strategy, and WAL-aware host-backup integrity. Never mark an untested capability complete.
 
 ## 12. Contributor handoff
 

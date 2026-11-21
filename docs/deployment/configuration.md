@@ -21,7 +21,7 @@ Provisioning runs only when SQLite has no administrator. An existing stored admi
 
 Use exactly one password source. When using `SERYN_ADMIN_PASSWORD_FILE`, leave `SERYN_ADMIN_PASSWORD` empty and mount the secret read-only. The file must be readable by container UID 1654, contain at most 1024 bytes, and contain only the password. Trailing LF or CRLF is removed; other whitespace remains part of the password.
 
-There is no password recovery workflow in v0.1. Keep the credential in a password manager.
+There is no password recovery workflow in the current release. Keep the credential in a password manager.
 
 ## Remote access
 

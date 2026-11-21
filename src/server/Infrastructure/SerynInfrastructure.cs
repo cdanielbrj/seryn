@@ -31,7 +31,7 @@ public static class SerynInfrastructure
             .PersistKeysToFileSystem(keysDirectory);
         builder.Services.AddProblemDetails();
         builder.Services.AddOpenApi("v1");
-        builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 16 * 1024);
+        builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 16 * 1024 * 1024);
         return builder;
     }
 

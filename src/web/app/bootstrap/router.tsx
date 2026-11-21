@@ -1,5 +1,5 @@
-import { Route, Routes } from 'react-router-dom'
-import { ArrowLeftRight, Home } from 'lucide-react'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { Home } from 'lucide-react'
 import { UnavailableState } from '@/components/patterns/UnavailableState'
 import { CategoriesRoute } from '@/modules/classifications/routes/CategoriesRoute'
 import { ClassificationsRoute } from '@/modules/classifications/routes/ClassificationsRoute'
@@ -10,6 +10,8 @@ import { PreferencesRoute } from '@/modules/settings/routes/PreferencesRoute'
 import { AnalysesRoute } from '@/modules/analyses/routes/AnalysesRoute'
 import { ObjectiveFormRoute } from '@/modules/objectives/routes/ObjectiveFormRoute'
 import { ObjectivesRoute } from '@/modules/objectives/routes/ObjectivesRoute'
+import { ExportRoute } from '@/modules/portability/routes/ExportRoute'
+import { ImportRoute } from '@/modules/portability/routes/ImportRoute'
 
 export function AppRouter({ username, onLogout }: { username: string; onLogout: () => void }) {
   return <Routes>
@@ -24,7 +26,9 @@ export function AppRouter({ username, onLogout }: { username: string; onLogout: 
     <Route path="/pagamentos" element={<ClassificationsRoute key="payment-methods" kind="payment-methods" />} />
     <Route path="/categorias" element={<CategoriesRoute />} />
     <Route path="/tipos" element={<ClassificationsRoute key="types" kind="types" />} />
-    <Route path="/importar-exportar" element={<UnavailableState title="Importar / Exportar" icon={ArrowLeftRight} description="Seus registros, com portabilidade." detail="A importação e exportação de registros originais em CSV e Excel serão disponibilizadas na etapa de portabilidade." />} />
+    <Route path="/exportar" element={<ExportRoute />} />
+    <Route path="/importar" element={<ImportRoute />} />
+    <Route path="/importar-exportar" element={<Navigate to="/exportar" replace />} />
     <Route path="/ajustes" element={<PreferencesRoute username={username} onLogout={onLogout} />} />
     <Route path="*" element={<UnavailableState title="Página não encontrada" icon={Home} description="Este endereço não existe na Seryn." detail="Use a navegação para voltar ao seu planejamento." />} />
   </Routes>

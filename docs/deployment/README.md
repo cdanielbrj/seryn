@@ -4,6 +4,7 @@ Seryn runs as one ASP.NET Core container. The same process serves the compiled f
 
 - [Docker operations](docker.md)
 - [Configuration](configuration.md)
+- [User-data portability](portability.md)
 - [Unraid](unraid/README.md)
 
 The executable deployment contracts remain at the repository root: `Dockerfile`, `compose.yaml`, and `.env.example`. Documentation explains them but does not replace them.
