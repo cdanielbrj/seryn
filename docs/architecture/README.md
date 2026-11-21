@@ -17,6 +17,7 @@ The current implementation is governed by the accepted architecture decision rec
 | [ADR-008](adr/ADR-008-FRONTEND-APPLICATION-ARCHITECTURE.md) | Modular vertical-slice frontend | Accepted |
 | [ADR-009](adr/ADR-009-PROJECTION-ANALYSES.md) | Derived segmented analyses over projected occurrences | Accepted |
 | [ADR-010](adr/ADR-010-OBJECTIVES.md) | Independent objective storage and CRUD | Accepted |
+| [ADR-011](adr/ADR-011-USER-DATA-PORTABILITY.md) | Canonical workbook user-data portability | Accepted |
 
 ## When to add an ADR
 

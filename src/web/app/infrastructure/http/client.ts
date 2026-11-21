@@ -29,3 +29,9 @@ export async function post<T>(path: string, body?: unknown): Promise<T> {
 
 export async function patch<T>(path: string, body: unknown): Promise<T> { return mutate<T>('PATCH', path, body) }
 export async function remove(path: string): Promise<void> { return mutate<void>('DELETE', path) }
+
+export async function download(path: string): Promise<Blob> {
+  const response = await fetch(`/api/v1${path}`, { credentials: 'same-origin', cache: 'no-store' })
+  if (!response.ok) await parse(response)
+  return response.blob()
+}

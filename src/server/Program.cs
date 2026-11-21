@@ -4,6 +4,7 @@ using Seryn.Server.Modules.Classifications;
 using Seryn.Server.Modules.Projections;
 using Seryn.Server.Modules.Records;
 using Seryn.Server.Modules.Objectives;
+using Seryn.Server.Modules.ImportExport;
 
 if (args.Contains("--healthcheck"))
 {
@@ -33,6 +34,7 @@ builder.Services
     .AddClassificationsModule()
     .AddRecordsModule()
     .AddObjectivesModule()
+    .AddImportExportModule()
     .AddProjectionsModule();
 
 var app = builder.Build();
@@ -44,6 +46,7 @@ api.MapAuthModule();
 api.MapClassificationsModule();
 api.MapRecordsModule();
 api.MapObjectivesModule();
+api.MapImportExportModule();
 api.MapProjectionsModule();
 api.MapGet("/foundation", () => new { phase = 2, financialDataAvailable = true }).WithTags("Fundação");
 

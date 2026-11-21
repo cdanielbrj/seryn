@@ -3,7 +3,7 @@ import type { NavigationItem } from './navigation'
 
 export function Navigation({ items, label, className, settingsChildren = false }: { items: NavigationItem[]; label: string; className?: string; settingsChildren?: boolean }) {
   const { pathname } = useLocation()
-  return <nav className={className} aria-label={label}>{items.map(item => <NavigationLink key={item.path} item={item} relatedActive={settingsChildren && item.path === '/ajustes' && ['/categorias', '/tipos', '/pagamentos', '/importar-exportar'].includes(pathname)} />)}</nav>
+  return <nav className={className} aria-label={label}>{items.map(item => <NavigationLink key={item.path} item={item} relatedActive={settingsChildren && item.path === '/ajustes' && ['/categorias', '/tipos', '/pagamentos', '/exportar', '/importar'].includes(pathname)} />)}</nav>
 }
 
 function NavigationLink({ item, relatedActive = false }: { item: NavigationItem; relatedActive?: boolean }) {

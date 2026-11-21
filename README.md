@@ -2,9 +2,9 @@
 
 Seryn is a self-hosted planner for expected income and expenses. It stores original planned records and derives recurrences, totals, and projections without persisting virtual future installments.
 
-Current version: **0.2.0**.
+Current version: **0.3.0**.
 
-Available today: secure single-administrator provisioning, local sessions, editable classifications, financial-record CRUD, deterministic projections, segmented analyses, independent objectives, a data-backed responsive dashboard, and light/dark presentation. Import/export and application-managed backup remain future increments.
+Available today: secure single-administrator provisioning, local sessions, editable classifications, financial-record CRUD, deterministic projections, segmented analyses, independent objectives, a data-backed responsive dashboard, light/dark presentation, and transactional XLSX/XLSM user-data portability with merge and complete replacement flows. Host-level backup remains a separate future increment.
 
 ## Quick start
 

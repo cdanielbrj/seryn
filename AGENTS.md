@@ -9,7 +9,7 @@ This repository implements **Seryn**, a self-hosted planner for expected income 
 - Totals, series end dates, projections, and results are derived values, not persisted sources of truth.
 - All values are expected. Do not introduce paid, settled, pending, or bank-account concepts.
 - Type and category are editable classifications and never determine financial behavior.
-- CSV/Excel import and export must preserve the original record and support round trips without silent duplication.
+- XLSX/XLSM user-data portability must preserve original records and support round trips without silent duplication; replacement never affects host identity or configuration.
 - Run the self-hosted application in one Docker container and ASP.NET Core/Kestrel process, with SQLite persisted under `/data`; Node exists only during the React build.
 - Keep a modular monolith. Do not introduce microservices, auxiliary services, or mandatory third-party authentication. Use `/api/v1` and OpenAPI for future integrations.
 - UI, imports, and future APIs must use the same application service and validation. Never write directly to the database around those rules.

@@ -1,0 +1,18 @@
+.portability-message { margin-bottom: 20px; }
+.portability-panel { min-width: 0; }
+.portability-panel .panel-heading h2 { margin: 0 0 3px; }
+.portability-file-action { margin-top: 20px; }
+.portability-panel label.inline-flex { cursor: pointer; }
+.portability-preview { margin-top: 20px; }
+.portability-preview-error { margin-top: 20px; }
+.portability-table { overflow: auto; max-height: 340px; border: 1px solid var(--line); border-radius: 12px; }
+.portability-table table { width: 100%; min-width: 500px; border-collapse: collapse; font-size: 12px; }
+.portability-table th, .portability-table td { padding: 11px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.portability-table th { position: sticky; top: 0; z-index: 1; background: var(--panel-solid); color: var(--muted); font-weight: 700; }
+.portability-table tr:last-child td { border-bottom: 0; }
+.portability-preview-controls { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; margin-top: 16px; }
+.portability-confirm { display: flex; align-items: flex-start; gap: 9px; color: var(--fg); font-size: 13px; line-height: 1.45; }
+.portability-confirm input { width: 17px; height: 17px; min-height: 0; margin-top: 1px; padding: 0; accent-color: var(--accent); }
+.portability-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.portability-replace-help { margin: 0; color: var(--muted); font-size: 12px; }
+@media (max-width: 700px) { .portability-panel { padding: 20px 17px; } .portability-panel > .inline-flex, .portability-actions, .portability-actions > .inline-flex { width: 100%; } }
