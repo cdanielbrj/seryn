@@ -41,14 +41,15 @@ var app = builder.Build();
 await app.InitializeSerynAsync();
 app.UseSerynHttpPipeline();
 
-var api = app.MapGroup("/api/v1").RequireAuthorization();
+var api = app.MapGroup("/api/v1").RequireAuthorization().RequireRateLimiting("api");
 api.MapAuthModule();
 api.MapClassificationsModule();
 api.MapRecordsModule();
 api.MapObjectivesModule();
 api.MapImportExportModule();
 api.MapProjectionsModule();
-api.MapGet("/foundation", () => new { phase = 2, financialDataAvailable = true }).WithTags("Fundação");
+api.MapGet("/foundation", () => new { phase = 2, financialDataAvailable = true }).WithTags("Fundação").RequireAuthorization("data:read")
+    .WithName("GetFoundationStatus").WithSummary("Informa as capacidades fundamentais disponíveis");
 
 app.MapSerynInfrastructure();
 await app.RunAsync();

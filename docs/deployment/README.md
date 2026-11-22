@@ -2,6 +2,8 @@
 
 Seryn runs as one ASP.NET Core container. The same process serves the compiled frontend and `/api/v1`; Node is used only during the image build. SQLite, sessions, and Data Protection keys persist under `/data`.
 
+See [API integrations](api-integrations.md) for scoped tokens, network boundaries, safe retries, and contract compatibility.
+
 - [Docker operations](docker.md)
 - [Configuration](configuration.md)
 - [User-data portability](portability.md)

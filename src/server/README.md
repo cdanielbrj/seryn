@@ -5,6 +5,7 @@ The backend is a single ASP.NET Core 10 project organized as a modular monolith.
 ## Boundaries
 
 - `Modules/Auth` owns provisioning, credentials, sessions, and authentication endpoints.
+- `Modules/Auth` also owns scoped integration tokens; portability and credential administration remain interactive-session-only.
 - `Modules/Classifications` owns types, categories, and payment methods.
 - `Modules/Records` owns the canonical financial record and CRUD use cases.
 - `Modules/Projections` owns pure recurrence expansion and derived dashboard reads.

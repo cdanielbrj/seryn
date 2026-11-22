@@ -24,17 +24,23 @@ public static class RecordsModule
     public static void MapRecordsModule(this RouteGroupBuilder api)
     {
         var records = api.MapGroup("/records").WithTags("Registros");
-        records.MapGet("/", (ListRecordsHandler handler) => handler.Handle());
+        records.MapGet("/", (ListRecordsHandler handler) => handler.Handle()).RequireAuthorization("data:read")
+            .WithName("ListRecords").WithSummary("Lista registros financeiros originais");
         records.MapGet("/{id:guid}", async (Guid id, GetRecordHandler handler) =>
-            await handler.Handle(id) is { } item ? Results.Ok(item) : Results.Problem(statusCode: 404, title: "Registro não encontrado."));
+            await handler.Handle(id) is { } item ? Results.Ok(item) : Results.Problem(statusCode: 404, title: "Registro não encontrado.")).RequireAuthorization("data:read")
+            .WithName("GetRecord").WithSummary("Obtém um registro financeiro original");
         records.MapPost("/", async (RecordCommand command, CreateRecordHandler handler) =>
-            ToResult(await handler.Handle(command), created: true));
+            ToResult(await handler.Handle(command), created: true)).RequireAuthorization("data:write")
+            .WithName("CreateRecord").WithSummary("Cria um registro financeiro")
+            .WithDescription("O valor é positivo e por ocorrência. Use Idempotency-Key em integrações para tornar repetições seguras por 24 horas.");
         records.MapPatch("/{id:guid}", async (Guid id, RecordCommand command, UpdateRecordHandler handler) =>
-            ToResult(await handler.Handle(id, command), created: false));
+            ToResult(await handler.Handle(id, command), created: false)).RequireAuthorization("data:write")
+            .WithName("UpdateRecord").WithSummary("Substitui os campos editáveis de um registro");
         records.MapDelete("/{id:guid}", async (Guid id, DeleteRecordHandler handler) =>
             await handler.Handle(id) == RecordFailure.None
                 ? Results.NoContent()
-                : Results.Problem(statusCode: 404, title: "Registro não encontrado."));
+                : Results.Problem(statusCode: 404, title: "Registro não encontrado.")).RequireAuthorization("data:delete")
+            .WithName("DeleteRecord").WithSummary("Exclui um registro financeiro original");
     }
 
     private static IResult ToResult(RecordResult result, bool created) => result.Failure switch

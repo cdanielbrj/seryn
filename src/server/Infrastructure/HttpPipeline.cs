@@ -32,6 +32,7 @@ public static class HttpPipeline
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseRateLimiter();
+        app.UseMiddleware<IdempotencyMiddleware>();
         app.Use(ValidateAntiforgery);
         return app;
     }
@@ -53,6 +54,7 @@ public static class HttpPipeline
     private static async Task ValidateAntiforgery(HttpContext context, RequestDelegate next)
     {
         if (context.Request.Path.StartsWithSegments("/api") &&
+            !context.User.HasClaim(claim => claim.Type == "api_token") &&
             !HttpMethods.IsGet(context.Request.Method) &&
             !HttpMethods.IsHead(context.Request.Method) &&
             !HttpMethods.IsOptions(context.Request.Method))

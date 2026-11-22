@@ -1,12 +1,15 @@
 using System.Net;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Seryn.Server.Persistence;
+using Seryn.Server.Modules.Auth.Application;
+using Seryn.Server.Modules.Auth.Domain;
 
 namespace Seryn.Server.Infrastructure;
 
@@ -26,7 +29,16 @@ public static class SecurityConfiguration
             foreach (var proxy in builder.Configuration.GetSection("Seryn:TrustedProxies").Get<string[]>() ?? [])
                 options.KnownProxies.Add(IPAddress.Parse(proxy));
         });
-        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = "SerynAuthentication";
+            options.DefaultChallengeScheme = "SerynAuthentication";
+        }).AddPolicyScheme("SerynAuthentication", null, options =>
+        {
+            options.ForwardDefaultSelector = context => context.Request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? ApiTokenAuthenticationHandler.SchemeName
+                : CookieAuthenticationDefaults.AuthenticationScheme;
+        }).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
         {
             options.Cookie.Name = "Seryn.Session";
             options.Cookie.HttpOnly = true;
@@ -37,9 +49,15 @@ public static class SecurityConfiguration
             options.Events.OnRedirectToLogin = context => Results.Problem(statusCode: 401, title: "Entre para continuar.").ExecuteAsync(context.HttpContext);
             options.Events.OnRedirectToAccessDenied = context => Results.Problem(statusCode: 403, title: "Acesso negado.").ExecuteAsync(context.HttpContext);
             options.Events.OnValidatePrincipal = ValidateSession;
-        });
+        }).AddScheme<AuthenticationSchemeOptions, ApiTokenAuthenticationHandler>(ApiTokenAuthenticationHandler.SchemeName, null);
         builder.Services.AddAuthorization(options =>
-            options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+            options.AddPolicy("admin-session", policy => policy.AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme).RequireAuthenticatedUser());
+            AddDataPolicy(options, ApiTokenScopes.Read);
+            AddDataPolicy(options, ApiTokenScopes.Write);
+            AddDataPolicy(options, ApiTokenScopes.Delete);
+        });
         builder.Services.AddAntiforgery(options =>
         {
             options.HeaderName = "X-CSRF-TOKEN";
@@ -56,6 +74,16 @@ public static class SecurityConfiguration
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
+            options.AddPolicy("api", context =>
+            {
+                var partition = context.User.FindFirstValue("api_token") ?? "browser-session";
+                return RateLimitPartition.GetFixedWindowLimiter(partition, _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 120,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                });
+            });
             options.OnRejected = (context, _) =>
             {
                 context.HttpContext.Response.Headers.RetryAfter = "60";
@@ -64,6 +92,11 @@ public static class SecurityConfiguration
         });
         return builder;
     }
+
+    private static void AddDataPolicy(AuthorizationOptions options, string scope) =>
+        options.AddPolicy(scope, policy => policy.RequireAssertion(context =>
+            context.User.Identity?.AuthenticationType == CookieAuthenticationDefaults.AuthenticationScheme ||
+            context.User.HasClaim("scope", scope)));
 
     private static async Task ValidateSession(CookieValidatePrincipalContext context)
     {

@@ -2,7 +2,7 @@
 
 > **Status:** approved product baseline; consolidated technical stack, analyses, objectives, and user-data portability (revision 6)
 > **Reference date:** November 21, 2026
-> **Product language:** Brazilian Portuguese (`pt-BR`)  
+> **Initial product language:** Brazilian Portuguese (`pt-BR`); API v1 identifiers remain stable independently of future UI localization
 > **Audience:** Codex and project contributors  
 > **Visual source of truth:** `docs/design/prototypes/seryn_mock_v2.html` and the reference images in the same directory
 
@@ -62,6 +62,7 @@ All values are user-defined forecasts, not completed transactions. Do not reconc
 - iPhone-installable PWA metadata, icons, and viewport behavior.
 - SQLite backup/restore and persistence across container replacement/upgrades.
 - Local single-user authentication before financial operations become available, with safe local and reverse-proxy deployment.
+- Revocable scoped Bearer tokens for explicit API integrations, without granting portability or host-recovery operations.
 
 ### Do not implement now
 
@@ -333,7 +334,7 @@ Suggested repository structure keeps one server project and one test project, wi
 
 ### Shared application flow
 
-UI, file import, and future integrations must all use the same application service and validation. Import converts rows into the same internal command and writes transactionally; it never bypasses rules with direct database writes. Future Aira/external adapters and API credentials remain outside the current scope.
+UI, file import, and future integrations must all use the same application service and validation. Import converts rows into the same internal command and writes transactionally; it never bypasses rules with direct database writes. Scoped API credentials are supported; Aira-specific and other external adapters remain outside the current scope.
 
 Reference REST surface:
 
@@ -348,6 +349,8 @@ GET                      /api/v1/projections?period=month|semester|year&referenc
 GET                      /api/v1/analyses?period=month|semester|year&reference=YYYY-MM&direction=all|income|expense&primary=category|payment|type&secondary=none|category|payment|type
 GET/POST                 /api/v1/objectives
 GET/PATCH/DELETE         /api/v1/objectives/{id}
+GET/POST                 /api/v1/auth/tokens
+DELETE                   /api/v1/auth/tokens/{id}
 GET                      /api/v1/portability/export.xlsx
 POST                     /api/v1/portability/workbook/preview
 POST                     /api/v1/portability/workbook/commit
@@ -355,7 +358,7 @@ POST/GET                 /api/v1/backups
 POST                     /api/v1/backups/restore
 ```
 
-Names may vary modestly, but `/api/v1`, semantics, authentication, validation, DTO isolation, safe Problem Details, and OpenAPI are required. React calls authenticated HTTP and never queries SQLite.
+Names may vary modestly, but `/api/v1`, semantics, authentication, validation, DTO isolation, safe Problem Details, and OpenAPI are required. Existing v1 field names and meanings remain stable; incompatible changes require a new API version. Future API versions may use identifiers independent from UI language. React calls authenticated HTTP and never queries SQLite.
 
 ### SQLite and operations
 
@@ -370,6 +373,8 @@ Names may vary modestly, but `/api/v1`, semantics, authentication, validation, D
 ### Security and authentication
 
 - One local user with a strong password hash and secure session. No financial page or endpoint is anonymous.
+- Integrations use revocable Bearer tokens with `data:read`, `data:write`, and `data:delete` scopes. Tokens never authorize workbook portability, complete replacement, token administration, backup, or restore.
+- Bearer-authenticated POST retries may use an idempotency key retained for 24 hours. Reuse with a different request is rejected.
 - Initial provisioning must prevent remote takeover. Local/protected setup or a temporary provisioning secret is acceptable.
 - Cookies are HttpOnly, Secure under HTTPS, and appropriately SameSite. Protect cookie-authenticated mutations from CSRF, and address XSS, brute force, path traversal, and upload limits.
 - Support LAN/Tailscale and trusted HTTPS proxies without requiring a specific provider. Trust forwarded headers only from configured proxies.
@@ -452,6 +457,7 @@ Acceptance: required and optional fields follow the approved contract; interest 
 - One Docker container/process serves React and `/api/v1`, with SQLite under `/data`.
 - Final image contains no Node runtime or auxiliary server; EF Core 10 migrations are versioned.
 - OpenAPI documents `/api/v1`; UI and import share validation/application services.
+- Integration tokens are revocable, least-privilege, excluded from portable workbooks, and unable to invoke administrator-only data portability or recovery operations.
 - Local authentication protects data before first use and cannot be remotely claimed.
 - Desktop/mobile match approved v2 composition in both themes.
 - Production contains no hardcoded financial data.
