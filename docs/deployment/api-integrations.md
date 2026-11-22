@@ -32,6 +32,8 @@ Idempotency-Key: 5e72c030-50f4-4cf9-90e4-af14f124b565
 
 For 24 hours, an identical retry returns the original status, body, content type, and relevant representation/navigation headers (`Location`, `ETag`, `Last-Modified`, `Cache-Control`, `Content-Language`, `Link`, `Deprecation`, and `Sunset`) with `Idempotency-Replayed: true`. Authentication, cookie, connection-specific, rate-limit, and other transient headers are deliberately not replayed. Responses below 500 are retained; a 5xx response can be retried with the same key. Reusing the key with a different method, path, query, or body returns `409 Conflict`. Keys must contain 8–128 non-control characters. Use a new unpredictable key for each logical creation.
 
+Residual limitation: the business operation and the idempotency response record are not committed in one database transaction. If the operation commits but persisting its idempotency record fails, retrying the same key can execute the operation again. Integrations must still tolerate duplicate delivery, and write handlers must preserve their own business invariants. Seryn does not describe the current mechanism as exactly-once execution.
+
 When both a session cookie and an `Authorization: Bearer` header are sent to a data endpoint, Bearer authentication takes precedence. An invalid or insufficiently scoped token is never allowed to fall back to the cookie. Endpoints explicitly restricted to `admin-session` authenticate the cookie only and remain unavailable to Bearer tokens; browser clients should nevertheless omit the Authorization header.
 
 ## Network boundary
