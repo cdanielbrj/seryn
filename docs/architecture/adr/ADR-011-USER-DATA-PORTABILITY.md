@@ -23,7 +23,7 @@ Import exposes two explicit operations after preview:
 
 Every confirmed import runs through application validation in one database transaction. Failure rolls back both deletion and creation. Authentication and host state are outside the transaction's deletion scope.
 
-Export and import have separate frontend destinations and independently callable authenticated API operations under `/api/v1/portability`.
+Export and import have separate frontend destinations, backend modules, application services, and independently callable authenticated API operations under `/api/v1/portability`. They share the canonical workbook contract rather than a combined implementation service: export is read-only, while import owns untrusted-input validation, preview authorization, and transactional mutation.
 
 ## Consequences
 

@@ -10,6 +10,8 @@ docker compose up --build -d --wait
 
 Open `http://localhost:8080`. The default publishes only to host loopback.
 
+Publishing outside loopback with HTTPS disabled fails closed. Set up the trusted HTTPS proxy, or explicitly set `SERYN_ALLOW_INSECURE_REMOTE=true` only when accepting plain-HTTP risk on a private network.
+
 ## Shared development instance
 
 The repository workspace keeps the Compose project `seryn` available at `http://localhost:8080`:

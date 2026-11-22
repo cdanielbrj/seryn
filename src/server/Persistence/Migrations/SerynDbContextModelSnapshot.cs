@@ -17,6 +17,54 @@ namespace Seryn.Server.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.14");
 
+            modelBuilder.Entity("Seryn.Server.Persistence.ApiToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("CreatedAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DisplayPrefix")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("ExpiresAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("LastUsedAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("RevokedAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Scopes")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RevokedAtUnix");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("api_tokens", (string)null);
+                });
+
             modelBuilder.Entity("Seryn.Server.Persistence.FinancialCategory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -144,6 +192,55 @@ namespace Seryn.Server.Persistence.Migrations
                     b.ToTable("financial_types", (string)null);
                 });
 
+            modelBuilder.Entity("Seryn.Server.Persistence.IdempotencyRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ApiTokenId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ExpiresAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("ResponseBody")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<string>("ResponseHeadersJson")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StatusCode")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAtUnix");
+
+                    b.HasIndex("ApiTokenId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("idempotency_records", (string)null);
+                });
+
             modelBuilder.Entity("Seryn.Server.Persistence.LocalUser", b =>
                 {
                     b.Property<int>("Id")
@@ -177,7 +274,13 @@ namespace Seryn.Server.Persistence.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<long>("CreatedAtUnix")
+                        .HasColumnType("INTEGER");
+
                     b.Property<long>("ExpiresAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("LastUsedAtUnix")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -265,6 +368,45 @@ namespace Seryn.Server.Persistence.Migrations
                     b.ToTable("payment_methods", (string)null);
                 });
 
+            modelBuilder.Entity("Seryn.Server.Persistence.WorkbookImportPreview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("ConsumedAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CurrentDataHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ExpiresAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ReplaceData")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SessionId")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WorkbookHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAtUnix");
+
+                    b.HasIndex("SessionId");
+
+                    b.ToTable("workbook_import_previews", (string)null);
+                });
+
             modelBuilder.Entity("Seryn.Server.Persistence.FinancialCategory", b =>
                 {
                     b.HasOne("Seryn.Server.Persistence.FinancialCategory", "Parent")
@@ -299,6 +441,24 @@ namespace Seryn.Server.Persistence.Migrations
                     b.Navigation("PaymentMethod");
 
                     b.Navigation("Type");
+                });
+
+            modelBuilder.Entity("Seryn.Server.Persistence.IdempotencyRecord", b =>
+                {
+                    b.HasOne("Seryn.Server.Persistence.ApiToken", null)
+                        .WithMany()
+                        .HasForeignKey("ApiTokenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Seryn.Server.Persistence.WorkbookImportPreview", b =>
+                {
+                    b.HasOne("Seryn.Server.Persistence.LoginSession", null)
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Seryn.Server.Persistence.FinancialCategory", b =>

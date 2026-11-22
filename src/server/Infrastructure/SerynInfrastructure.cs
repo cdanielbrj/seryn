@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Seryn.Server.Persistence;
+using Microsoft.OpenApi;
 
 namespace Seryn.Server.Infrastructure;
 
@@ -19,6 +20,7 @@ public static class SerynInfrastructure
         var paths = new SerynPaths(dataDirectory, keysDirectory);
         builder.Services.AddSingleton(paths);
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<AsyncKeyedLock>();
         builder.Services.AddDbContext<SerynDbContext>(options => options.UseSqlite(
             new SqliteConnectionStringBuilder
             {
@@ -30,7 +32,25 @@ public static class SerynInfrastructure
             .SetApplicationName("Seryn")
             .PersistKeysToFileSystem(keysDirectory);
         builder.Services.AddProblemDetails();
-        builder.Services.AddOpenApi("v1");
+        builder.Services.AddOpenApi("v1", options => options.AddDocumentTransformer((document, _, _) =>
+        {
+            document.Info = new OpenApiInfo
+            {
+                Title = "Seryn API",
+                Version = "v1",
+                Description = "API versionada para dados de planejamento financeiro. Valores monetários usam centavos inteiros; projeções são expectativas e não saldos bancários. Autentique integrações com Authorization: Bearer <token>."
+            };
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+            document.Components.SecuritySchemes["bearerToken"] = new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "Seryn personal access token",
+                Description = "Token pessoal revogável com escopos data:read, data:write e data:delete. Portabilidade e administração exigem sessão interativa."
+            };
+            return Task.CompletedTask;
+        }));
         builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 16 * 1024 * 1024);
         return builder;
     }

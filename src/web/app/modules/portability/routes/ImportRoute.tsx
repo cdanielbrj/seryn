@@ -28,9 +28,11 @@ export function ImportRoute() {
   }
 
   async function importWorkbook(replace: boolean) {
+    const previewId = replace ? preview?.previewIdSubstituicao : preview?.previewIdMesclagem
+    if (!previewId) { setError('A prévia expirou ou não autoriza esta operação. Selecione o arquivo novamente.'); return }
     setBusy(true); resetMessages()
     try {
-      const result = await commitWorkbook(content, confirmCreates, replace, replace)
+      const result = await commitWorkbook(content, previewId, confirmCreates, replace, replace)
       setNotice(replace
         ? `${result.excluidos} item(ns) anterior(es) removido(s) e ${result.criados} restaurado(s).`
         : `${result.criados} item(ns) criado(s); ${result.existentes} já existia(m).`)
@@ -44,7 +46,7 @@ export function ImportRoute() {
     {error && <p className="form-error portability-message" role="alert">{error}</p>}
     {notice && <p className="form-notice portability-message" role="status">{notice}</p>}
     <section className="panel portability-panel">
-      <div className="panel-heading"><div className="square-icon"><FileSpreadsheet aria-hidden="true" /></div><div><h2>Selecionar planilha</h2><p>Aceita XLSX e XLSM no padrão Seryn; macros e conteúdo externo são ignorados.</p></div></div>
+      <div className="panel-heading"><div className="square-icon"><FileSpreadsheet aria-hidden="true" /></div><div><h2>Selecionar planilha</h2><p>Aceita XLSX e XLSM no padrão Seryn; macros e conteúdo desconhecido limitado são ignorados, e relações externas são rejeitadas.</p></div></div>
       <input id="workbook-file" className="sr-only" type="file" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroEnabled.12" disabled={busy} onChange={event => void chooseWorkbook(event.target.files?.[0])} />
       <Button className="portability-file-action" asChild variant="outline"><label htmlFor="workbook-file"><Upload aria-hidden="true" />{busy ? 'Processando…' : 'Selecionar arquivo'}</label></Button>
       {preview && <WorkbookPreviewPanel preview={preview} busy={busy} confirmed={confirmCreates} onConfirm={setConfirmCreates} onMerge={() => void importWorkbook(false)} onReplace={() => setConfirmReplace(true)} />}

@@ -24,3 +24,4 @@
 @import "./features/analyses.css" layer(features);
 @import "./features/objectives.css" layer(features);
 @import "./features/portability.css" layer(features);
+@import "./features/tokens.css" layer(features);

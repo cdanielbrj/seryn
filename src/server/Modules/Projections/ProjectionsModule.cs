@@ -18,11 +18,14 @@ public static class ProjectionsModule
         {
             var result = await service.Get(query);
             return result.Errors is null ? Results.Ok(result.Value) : Results.ValidationProblem(result.Errors);
-        }).WithTags("Projeções");
+        }).WithTags("Projeções").RequireAuthorization("data:read")
+            .WithName("GetProjection").WithSummary("Calcula a projeção de um período")
+            .WithDescription("Calcula ocorrências virtuais sem persistir parcelas. O resultado não representa saldo bancário.");
         api.MapGet("/analyses", async ([AsParameters] AnalysisQuery query, AnalysisProjectionService service) =>
         {
             var result = await service.Get(query);
             return result.Errors is null ? Results.Ok(result.Value) : Results.ValidationProblem(result.Errors);
-        }).WithTags("Análises");
+        }).WithTags("Análises").RequireAuthorization("data:read")
+            .WithName("GetAnalysis").WithSummary("Analisa a composição de valores projetados");
     }
 }

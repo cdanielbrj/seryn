@@ -20,28 +20,28 @@ public static class ClassificationsModule
     public static void MapClassificationsModule(this RouteGroupBuilder api)
     {
         var types = api.MapGroup("/types").WithTags("Tipos");
-        types.MapGet("/", (TypesHandler handler) => handler.List());
+        types.MapGet("/", (TypesHandler handler) => handler.List()).RequireAuthorization("data:read").WithName("ListTypes").WithSummary("Lista tipos");
         types.MapPost("/", async (ClassificationRequest request, TypesHandler handler) =>
-            ToResult(await handler.Create(request.Nome), created: true));
+            ToResult(await handler.Create(request.Nome), created: true)).RequireAuthorization("data:write").WithName("CreateType").WithSummary("Cria um tipo");
         types.MapPatch("/{id:guid}", async (Guid id, ClassificationRequest request, TypesHandler handler) =>
-            ToResult(await handler.Update(id, request.Nome), created: false));
-        types.MapDelete("/{id:guid}", async (Guid id, TypesHandler handler) => DeleteResult(await handler.Delete(id)));
+            ToResult(await handler.Update(id, request.Nome), created: false)).RequireAuthorization("data:write").WithName("UpdateType").WithSummary("Renomeia um tipo");
+        types.MapDelete("/{id:guid}", async (Guid id, TypesHandler handler) => DeleteResult(await handler.Delete(id))).RequireAuthorization("data:delete").WithName("DeleteType").WithSummary("Exclui um tipo não utilizado");
 
         var paymentMethods = api.MapGroup("/payment-methods").WithTags("Pagamentos");
-        paymentMethods.MapGet("/", (PaymentMethodsHandler handler) => handler.List());
+        paymentMethods.MapGet("/", (PaymentMethodsHandler handler) => handler.List()).RequireAuthorization("data:read").WithName("ListPaymentMethods").WithSummary("Lista meios de pagamento");
         paymentMethods.MapPost("/", async (ClassificationRequest request, PaymentMethodsHandler handler) =>
-            ToResult(await handler.Create(request.Nome), created: true));
+            ToResult(await handler.Create(request.Nome), created: true)).RequireAuthorization("data:write").WithName("CreatePaymentMethod").WithSummary("Cria um meio de pagamento");
         paymentMethods.MapPatch("/{id:guid}", async (Guid id, ClassificationRequest request, PaymentMethodsHandler handler) =>
-            ToResult(await handler.Update(id, request.Nome), created: false));
-        paymentMethods.MapDelete("/{id:guid}", async (Guid id, PaymentMethodsHandler handler) => DeleteResult(await handler.Delete(id)));
+            ToResult(await handler.Update(id, request.Nome), created: false)).RequireAuthorization("data:write").WithName("UpdatePaymentMethod").WithSummary("Renomeia um meio de pagamento");
+        paymentMethods.MapDelete("/{id:guid}", async (Guid id, PaymentMethodsHandler handler) => DeleteResult(await handler.Delete(id))).RequireAuthorization("data:delete").WithName("DeletePaymentMethod").WithSummary("Exclui um meio de pagamento não utilizado");
 
         var categories = api.MapGroup("/categories").WithTags("Categorias");
-        categories.MapGet("/", (CategoriesHandler handler) => handler.List());
+        categories.MapGet("/", (CategoriesHandler handler) => handler.List()).RequireAuthorization("data:read").WithName("ListCategories").WithSummary("Lista categorias");
         categories.MapPost("/", async (CategoryRequest request, CategoriesHandler handler) =>
-            ToResult(await handler.Create(request.Nome, request.CategoriaPaiId), created: true));
+            ToResult(await handler.Create(request.Nome, request.CategoriaPaiId), created: true)).RequireAuthorization("data:write").WithName("CreateCategory").WithSummary("Cria uma categoria");
         categories.MapPatch("/{id:guid}", async (Guid id, CategoryRequest request, CategoriesHandler handler) =>
-            ToResult(await handler.Update(id, request.Nome, request.CategoriaPaiId), created: false));
-        categories.MapDelete("/{id:guid}", async (Guid id, CategoriesHandler handler) => DeleteResult(await handler.Delete(id)));
+            ToResult(await handler.Update(id, request.Nome, request.CategoriaPaiId), created: false)).RequireAuthorization("data:write").WithName("UpdateCategory").WithSummary("Atualiza uma categoria");
+        categories.MapDelete("/{id:guid}", async (Guid id, CategoriesHandler handler) => DeleteResult(await handler.Delete(id))).RequireAuthorization("data:delete").WithName("DeleteCategory").WithSummary("Exclui uma categoria conforme as regras de referência");
     }
 
     private static IResult ToResult<T>(ClassificationResult<T> result, bool created) where T : class => result.Failure switch

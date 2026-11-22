@@ -19,5 +19,38 @@ internal static class AuthConfiguration
             session.HasKey(x => x.Id);
             session.HasIndex(x => x.ExpiresAtUnix);
         });
+        modelBuilder.Entity<WorkbookImportPreview>(preview =>
+        {
+            preview.ToTable("workbook_import_previews");
+            preview.HasKey(x => x.Id);
+            preview.Property(x => x.SessionId).HasMaxLength(32);
+            preview.Property(x => x.WorkbookHash).HasMaxLength(64);
+            preview.Property(x => x.CurrentDataHash).HasMaxLength(64);
+            preview.HasIndex(x => x.ExpiresAtUnix);
+            preview.HasOne<LoginSession>().WithMany().HasForeignKey(x => x.SessionId).OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<ApiToken>(token =>
+        {
+            token.ToTable("api_tokens");
+            token.HasKey(x => x.Id);
+            token.Property(x => x.Name).HasMaxLength(80);
+            token.Property(x => x.TokenHash).HasMaxLength(64);
+            token.Property(x => x.DisplayPrefix).HasMaxLength(24);
+            token.Property(x => x.Scopes).HasMaxLength(64);
+            token.HasIndex(x => x.TokenHash).IsUnique();
+            token.HasIndex(x => x.RevokedAtUnix);
+        });
+        modelBuilder.Entity<IdempotencyRecord>(record =>
+        {
+            record.ToTable("idempotency_records");
+            record.HasKey(x => x.Id);
+            record.Property(x => x.Key).HasMaxLength(128);
+            record.Property(x => x.RequestHash).HasMaxLength(64);
+            record.Property(x => x.ContentType).HasMaxLength(128);
+            record.Property(x => x.ResponseHeadersJson).HasMaxLength(2048);
+            record.HasIndex(x => new { x.ApiTokenId, x.Key }).IsUnique();
+            record.HasIndex(x => x.ExpiresAtUnix);
+            record.HasOne<ApiToken>().WithMany().HasForeignKey(x => x.ApiTokenId).OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

@@ -1,0 +1,26 @@
+.tokens-layout { display: grid; grid-template-columns: minmax(320px,.8fr) minmax(420px,1.2fr); gap: 20px; align-items: start; }
+.token-create form { display: flex; flex-direction: column; gap: 16px; margin-top: 22px; }
+.token-create form > label:not(.token-scope) { display: flex; flex-direction: column; gap: 7px; font-size: 13px; font-weight: 650; }
+.token-create fieldset { border: 0; padding: 0; margin: 0; }
+.token-create legend { margin-bottom: 10px; font-size: 13px; font-weight: 650; }
+.token-scope { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; cursor: pointer; }
+.token-scope input { min-height: auto; margin-top: 3px; accent-color: var(--accent); }
+.token-scope span { display: flex; flex-direction: column; gap: 3px; }
+.token-scope small { color: var(--muted); font-size: 12px; line-height: 1.4; }
+.token-secret { display: flex; flex-direction: column; gap: 10px; padding: 14px; margin: 18px 0; border: 1px solid var(--accent); border-radius: 12px; background: var(--accent-tint); }
+.token-secret code { overflow-wrap: anywhere; user-select: all; }
+.token-secret button { align-self: flex-start; }
+.token-list ul { list-style: none; margin: 18px 0 0; padding: 0; }
+.token-list li { display: flex; align-items: center; gap: 12px; padding: 15px 0; border-top: 1px solid var(--line); }
+.token-list li > div { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 4px; }
+.token-list li code, .token-list li small { color: var(--muted); font-size: 12px; }
+.token-list li button { color: var(--rose); }
+.tokens-empty { min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); }
+.tokens-empty svg { color: var(--accent); }
+@media (max-width: 900px) { .tokens-layout { grid-template-columns: 1fr; } }
+.sessions-panel { max-width: 820px; }
+.sessions-revoke-others { margin-top: 18px; }
+.sessions-panel ul { list-style: none; margin: 20px 0 0; padding: 0; }
+.sessions-panel li { display: flex; align-items: center; gap: 14px; min-height: 86px; padding: 14px 0; border-top: 1px solid var(--line); }
+.sessions-panel li > div { display: flex; flex: 1; flex-direction: column; gap: 4px; }
+.sessions-panel li small { color: var(--muted); font-size: 12px; }

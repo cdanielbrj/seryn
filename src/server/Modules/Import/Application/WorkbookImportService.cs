@@ -1,42 +1,68 @@
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
-using Seryn.Server.Modules.ImportExport.Contracts;
+using Seryn.Server.Modules.Import.Contracts;
+using Seryn.Server.Modules.Import.Workbook;
 using Seryn.Server.Modules.Objectives.Application;
 using Seryn.Server.Modules.Objectives.Contracts;
 using Seryn.Server.Modules.Records.Application;
 using Seryn.Server.Modules.Records.Contracts;
 using Seryn.Server.Modules.Records.Domain;
 using Seryn.Server.Persistence;
+using Seryn.Server.Infrastructure;
 
-namespace Seryn.Server.Modules.ImportExport.Application;
+namespace Seryn.Server.Modules.Import.Application;
 
-internal sealed class WorkbookPortabilityService(SerynDbContext db, RecordCommandProcessor recordProcessor, TimeProvider clock)
+internal sealed class WorkbookImportService(SerynDbContext db, RecordCommandProcessor recordProcessor, TimeProvider clock, AsyncKeyedLock locks)
 {
     private const int MaxBytes = 10 * 1024 * 1024;
     private static readonly string[] RequiredSheets = ["Registros", "Objetivos", "Tipos", "Categorias", "Pagamentos"];
     private sealed record CategoryRow(string Name, string ParentName);
     private sealed record RecordRow(string Name, string Direction, long Amount, string Date, string Recurrence, int? Count, string Type, string ParentCategory, string Category, string Payment);
     private sealed record ObjectiveRow(string Name, long Value, string Interest, int Priority, string? Link, string? Notes, string? DesiredDate, DateOnly CreatedDate);
-    private sealed record Model(List<string> Types, List<string> Payments, List<CategoryRow> Categories, List<RecordRow> Records, List<ObjectiveRow> Objectives, List<string> Errors, HashSet<string> PresentSheets);
+    private sealed record Model(List<string> Types, List<string> Payments, List<CategoryRow> Categories, List<RecordRow> Records, List<ObjectiveRow> Objectives, List<string> Errors, HashSet<string> PresentSheets, string WorkbookHash);
+    private sealed record PreviewCalculation(WorkbookPreview Preview, string CurrentDataHash);
 
-    public async Task<byte[]> Export()
-    {
-        using var workbook = new XLWorkbook();
-        await ExportRecords(workbook);
-        await ExportObjectives(workbook);
-        await ExportTypes(workbook);
-        await ExportCategories(workbook);
-        await ExportPayments(workbook);
-        using var stream = new MemoryStream();
-        workbook.SaveAs(stream);
-        return stream.ToArray();
-    }
-
-    public async Task<(WorkbookPreview? Value, Dictionary<string, string[]>? Errors)> Preview(string? base64)
+    public async Task<(WorkbookPreview? Value, Dictionary<string, string[]>? Errors)> Preview(string? base64, string sessionId)
     {
         var model = Parse(base64);
-        if (model.Errors.Count > 0) return (new([], 0, 0, 0, false, model.Errors), null);
+        if (model.Errors.Count > 0) return (new(null, null, "", [], 0, 0, 0, false, model.Errors), null);
+
+        var calculation = await CalculatePreview(model);
+        var now = clock.GetUtcNow();
+        var expires = now.AddMinutes(30).ToUnixTimeSeconds();
+        await db.WorkbookImportPreviews.Where(x => x.ExpiresAtUnix <= now.ToUnixTimeSeconds() || x.ConsumedAtUnix != null).ExecuteDeleteAsync();
+        var merge = NewPreview(false);
+        db.WorkbookImportPreviews.Add(merge);
+        WorkbookImportPreview? replace = null;
+        if (calculation.Preview.Completa)
+        {
+            replace = NewPreview(true);
+            db.WorkbookImportPreviews.Add(replace);
+        }
+        await db.SaveChangesAsync();
+        return (calculation.Preview with
+        {
+            PreviewIdMesclagem = merge.Id,
+            PreviewIdSubstituicao = replace?.Id,
+            ExpiraEm = DateTimeOffset.FromUnixTimeSeconds(expires).ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture)
+        }, null);
+
+        WorkbookImportPreview NewPreview(bool replaceData) => new()
+        {
+            Id = Guid.NewGuid(),
+            SessionId = sessionId,
+            WorkbookHash = model.WorkbookHash,
+            CurrentDataHash = calculation.CurrentDataHash,
+            ReplaceData = replaceData,
+            ExpiresAtUnix = expires
+        };
+    }
+
+    private async Task<PreviewCalculation> CalculatePreview(Model model)
+    {
 
         var typeKeys = (await db.FinancialTypes.AsNoTracking().Select(x => x.NormalizedName).ToListAsync()).ToHashSet();
         var paymentKeys = (await db.PaymentMethods.AsNoTracking().Select(x => x.NormalizedName).ToListAsync()).ToHashSet();
@@ -54,22 +80,33 @@ internal sealed class WorkbookPortabilityService(SerynDbContext db, RecordComman
         Add(sheets, model, "Registros", model.Records.Select(RecordKey), recordKeys);
         Add(sheets, model, "Objetivos", model.Objectives.Select(ObjectiveKey), objectiveKeys);
         var currentItems = typeKeys.Count + paymentKeys.Count + categoryKeys.Count + recordKeys.Count + objectiveKeys.Count;
-        return (new(sheets, sheets.Sum(x => x.Criacoes), sheets.Sum(x => x.Existentes), currentItems, RequiredSheets.All(model.PresentSheets.Contains), []), null);
+        var preview = new WorkbookPreview(null, null, "", sheets, sheets.Sum(x => x.Criacoes), sheets.Sum(x => x.Existentes), currentItems, RequiredSheets.All(model.PresentSheets.Contains), []);
+        var stateHash = HashState(typeKeys.Select(x => $"T:{x}"), paymentKeys.Select(x => $"P:{x}"),
+            categoryKeys.Select(x => $"C:{x}"), records.Select(x => $"R:{RecordKey(x)}"), objectives.Select(x => $"O:{ObjectiveKey(x)}"));
+        return new(preview, stateHash);
     }
 
-    public async Task<(ImportCommitResult? Value, Dictionary<string, string[]>? Errors)> Commit(WorkbookCommitRequest request)
+    public async Task<(ImportCommitResult? Value, Dictionary<string, string[]>? Errors)> Commit(WorkbookCommitRequest request, string sessionId)
     {
-        var preview = await Preview(request.ConteudoBase64);
-        if (preview.Value is null) return (null, preview.Errors);
-        if (preview.Value.Erros.Count > 0) return (null, new() { ["arquivo"] = preview.Value.Erros.ToArray() });
-        if (request.SubstituirDados && !preview.Value.Completa) return (null, new() { ["arquivo"] = ["A substituição exige as cinco abas da planilha completa da Seryn."] });
-        if (request.SubstituirDados && !request.ConfirmarSubstituicao) return (null, new() { ["confirmarSubstituicao"] = ["Confirme a exclusão dos dados atuais antes da substituição."] });
-        if (!request.SubstituirDados && preview.Value.Criacoes > 0 && !request.ConfirmarCriacoes) return (null, new() { ["confirmarCriacoes"] = ["Confirme a criação dos novos dados."] });
-
+        using var importLock = await locks.Acquire("portable-user-data");
         var model = Parse(request.ConteudoBase64);
+        if (model.Errors.Count > 0) return (null, new() { ["arquivo"] = model.Errors.ToArray() });
+        var calculation = await CalculatePreview(model);
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        var authorization = await db.WorkbookImportPreviews.SingleOrDefaultAsync(x =>
+            x.Id == request.PreviewId && x.SessionId == sessionId && x.WorkbookHash == model.WorkbookHash &&
+            x.CurrentDataHash == calculation.CurrentDataHash && x.ReplaceData == request.SubstituirDados &&
+            x.ConsumedAtUnix == null && x.ExpiresAtUnix > now);
+        if (authorization is null)
+            return (null, new() { ["previewId"] = ["A prévia expirou, já foi usada ou não corresponde ao arquivo e aos dados atuais. Gere uma nova prévia."] });
+        if (request.SubstituirDados && !calculation.Preview.Completa) return (null, new() { ["arquivo"] = ["A substituição exige as cinco abas da planilha completa da Seryn."] });
+        if (request.SubstituirDados && !request.ConfirmarSubstituicao) return (null, new() { ["confirmarSubstituicao"] = ["Confirme a exclusão dos dados atuais antes da substituição."] });
+        if (!request.SubstituirDados && calculation.Preview.Criacoes > 0 && !request.ConfirmarCriacoes) return (null, new() { ["confirmarCriacoes"] = ["Confirme a criação dos novos dados."] });
+
         await using var transaction = await db.Database.BeginTransactionAsync();
         try
         {
+            authorization.ConsumedAtUnix = now;
             var deleted = request.SubstituirDados ? await DeleteUserData() : 0;
             var types = await ApplyClassifications<FinancialType>(model.Types);
             var payments = await ApplyClassifications<PaymentMethod>(model.Payments);
@@ -80,8 +117,8 @@ internal sealed class WorkbookPortabilityService(SerynDbContext db, RecordComman
             await db.SaveChangesAsync();
             await transaction.CommitAsync();
             if (request.SubstituirDados) return (new(await CountUserData(), 0, deleted), null);
-            var auxiliaryCreates = preview.Value.Abas.Where(x => x.Aba is "Tipos" or "Categorias" or "Pagamentos").Sum(x => x.Criacoes);
-            var auxiliaryExisting = preview.Value.Abas.Where(x => x.Aba is "Tipos" or "Categorias" or "Pagamentos").Sum(x => x.Existentes);
+            var auxiliaryCreates = calculation.Preview.Abas.Where(x => x.Aba is "Tipos" or "Categorias" or "Pagamentos").Sum(x => x.Criacoes);
+            var auxiliaryExisting = calculation.Preview.Abas.Where(x => x.Aba is "Tipos" or "Categorias" or "Pagamentos").Sum(x => x.Existentes);
             return (new(auxiliaryCreates + recordCreates + objectiveCreates, auxiliaryExisting + recordExisting + objectiveExisting, 0), null);
         }
         catch (InvalidDataException error)
@@ -205,13 +242,25 @@ internal sealed class WorkbookPortabilityService(SerynDbContext db, RecordComman
         try { bytes = Convert.FromBase64String(base64 ?? ""); }
         catch (FormatException) { return Empty("O arquivo XLSX ou XLSM não pôde ser lido."); }
         if (bytes.Length is 0 or > MaxBytes) return Empty("O arquivo XLSX ou XLSM deve ter no máximo 10 MB.");
+        var preflightError = OpenXmlPreflight.Validate(bytes);
+        if (preflightError is not null) return Empty(preflightError);
         try
         {
             using var stream = new MemoryStream(bytes); using var workbook = new XLWorkbook(stream);
             var present = workbook.Worksheets.Select(x => x.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
             if (!present.Overlaps(["Registros", "Objetivos", "Tipos", "Categorias", "Pagamentos"])) return Empty("A planilha não contém nenhuma aba de dados reconhecida.");
             var errors = new List<string>();
-            return new(ReadNames(workbook, "Tipos", errors), ReadNames(workbook, "Pagamentos", errors), ReadCategories(workbook, errors), ReadRecords(workbook, errors), ReadObjectives(workbook, errors), errors, present);
+            var types = ReadNames(workbook, "Tipos", errors);
+            var payments = ReadNames(workbook, "Pagamentos", errors);
+            var categories = ReadCategories(workbook, errors);
+            var records = ReadRecords(workbook, errors);
+            var objectives = ReadObjectives(workbook, errors);
+            Limit(types.Count, 5_000, "Tipos", errors);
+            Limit(payments.Count, 5_000, "Pagamentos", errors);
+            Limit(categories.Count, 5_000, "Categorias", errors);
+            Limit(records.Count, 25_000, "Registros", errors);
+            Limit(objectives.Count, 10_000, "Objetivos", errors);
+            return new(types, payments, categories, records, objectives, errors, present, Hash(bytes));
         }
         catch (Exception error) when (error is not OutOfMemoryException) { return Empty("O arquivo não é uma planilha XLSX ou XLSM válida."); }
     }
@@ -296,7 +345,25 @@ internal sealed class WorkbookPortabilityService(SerynDbContext db, RecordComman
     private static bool ValidName(string value, string sheet, int maximum, List<string> errors) { if (value.Length >= 1 && value.Length <= maximum) return true; errors.Add($"{sheet}: nome inválido."); return false; }
     private static string Normalize(string value) => value.Trim().Normalize().ToUpperInvariant();
     private static string? Null(string value) => value.Length == 0 ? null : value;
-    private static Model Empty(string error) => new([], [], [], [], [], [error], []);
+    private static Model Empty(string error) => new([], [], [], [], [], [error], [], "");
+    private static void Limit(int count, int maximum, string sheet, List<string> errors)
+    {
+        if (count > maximum) errors.Add($"A aba {sheet} deve conter no máximo {maximum:N0} linhas de dados.");
+    }
+    private static string Hash(byte[] value) => Convert.ToHexStringLower(SHA256.HashData(value));
+    private static string HashState(params IEnumerable<string>[] groups)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
+        foreach (var value in groups.SelectMany(x => x).Order(StringComparer.Ordinal))
+        {
+            var bytes = Encoding.UTF8.GetBytes(value);
+            writer.Write(bytes.Length);
+            writer.Write(bytes);
+        }
+        writer.Flush();
+        return Hash(stream.ToArray());
+    }
     private static void Add(List<WorkbookSheetPreview> target, Model model, string sheet, IEnumerable<string> keys, HashSet<string> existing)
     {
         if (!model.PresentSheets.Contains(sheet)) return;
@@ -314,12 +381,4 @@ internal sealed class WorkbookPortabilityService(SerynDbContext db, RecordComman
     private static string Recurrence(RecordRecurrence value) => value switch { RecordRecurrence.Once => "unica", RecordRecurrence.Monthly => "mensal", RecordRecurrence.Quarterly => "trimestral", RecordRecurrence.Semiannual => "semestral", _ => "anual" };
     private static string Interest(ObjectiveInterest value) => value switch { ObjectiveInterest.Listed => "listado", ObjectiveInterest.Considered => "considerado", _ => "desejado" };
 
-    private async Task ExportTypes(XLWorkbook workbook) { var sheet = workbook.AddWorksheet("Tipos"); WriteHeader(sheet, ["nome"]); var row = 2; foreach (var x in await db.FinancialTypes.AsNoTracking().OrderBy(x => x.Name).ToListAsync()) sheet.Cell(row++, 1).Value = Safe(x.Name); Finish(sheet); }
-    private async Task ExportPayments(XLWorkbook workbook) { var sheet = workbook.AddWorksheet("Pagamentos"); WriteHeader(sheet, ["nome"]); var row = 2; foreach (var x in await db.PaymentMethods.AsNoTracking().OrderBy(x => x.Name).ToListAsync()) sheet.Cell(row++, 1).Value = Safe(x.Name); Finish(sheet); }
-    private async Task ExportCategories(XLWorkbook workbook) { var sheet = workbook.AddWorksheet("Categorias"); WriteHeader(sheet, ["nome", "categoria_pai"]); var row = 2; foreach (var x in await db.FinancialCategories.AsNoTracking().Include(x => x.Parent).OrderBy(x => x.ParentId != null).ThenBy(x => x.Name).ToListAsync()) { sheet.Cell(row, 1).Value = Safe(x.Name); sheet.Cell(row++, 2).Value = Safe(x.Parent?.Name ?? ""); } Finish(sheet); }
-    private async Task ExportRecords(XLWorkbook workbook) { var sheet = workbook.AddWorksheet("Registros"); WriteHeader(sheet, ["nome", "movimentacao", "valor", "data", "recorrencia", "parcelas", "tipo", "categoria_pai", "categoria", "pagamento"]); var row = 2; foreach (var x in await db.FinancialRecords.AsNoTracking().Include(x => x.Type).Include(x => x.Category).ThenInclude(x => x!.Parent).Include(x => x.PaymentMethod).OrderBy(x => x.CreatedAtUnix).ToListAsync()) { sheet.Cell(row, 1).Value = Safe(x.Name); sheet.Cell(row, 2).Value = Direction(x.Direction); sheet.Cell(row, 3).Value = x.AmountCents / 100m; sheet.Cell(row, 3).Style.NumberFormat.Format = "R$ #,##0.00"; sheet.Cell(row, 4).Value = $"{x.StartYear:0000}-{x.StartMonth:00}"; sheet.Cell(row, 5).Value = Recurrence(x.Recurrence); if (x.OccurrenceCount is { } count) sheet.Cell(row, 6).Value = count; sheet.Cell(row, 7).Value = Safe(x.Type.Name); sheet.Cell(row, 8).Value = Safe(x.Category?.Parent?.Name ?? ""); sheet.Cell(row, 9).Value = Safe(x.Category?.Name ?? ""); sheet.Cell(row++, 10).Value = Safe(x.PaymentMethod.Name); } Finish(sheet); }
-    private async Task ExportObjectives(XLWorkbook workbook) { var sheet = workbook.AddWorksheet("Objetivos"); WriteHeader(sheet, ["nome", "valor_estimado", "interesse", "prioridade", "link", "observacoes", "data_desejada", "data_inclusao"]); var row = 2; foreach (var x in await db.Objectives.AsNoTracking().OrderBy(x => x.CreatedAtUnix).ToListAsync()) { sheet.Cell(row, 1).Value = Safe(x.Name); sheet.Cell(row, 2).Value = x.EstimatedValueCents / 100m; sheet.Cell(row, 2).Style.NumberFormat.Format = "R$ #,##0.00"; sheet.Cell(row, 3).Value = Interest(x.Interest); sheet.Cell(row, 4).Value = x.Priority; sheet.Cell(row, 5).Value = Safe(x.Link ?? ""); sheet.Cell(row, 6).Value = Safe(x.Notes ?? ""); sheet.Cell(row, 7).Value = x.DesiredYear is { } year && x.DesiredMonth is { } month ? $"{year:0000}-{month:00}" : ""; sheet.Cell(row++, 8).Value = DateTimeOffset.FromUnixTimeSeconds(x.CreatedAtUnix).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); } Finish(sheet); }
-    private static string Safe(string value) { var protect = value.Length > 0 && "=+-@\t\r".Contains(value[0]) || value.Length > 1 && value[0] == '\'' && "=+-@\t\r".Contains(value[1]); return protect ? "'" + value : value; }
-    private static void WriteHeader(IXLWorksheet sheet, string[] headers) { for (var column = 0; column < headers.Length; column++) sheet.Cell(1, column + 1).Value = headers[column]; sheet.Row(1).Style.Font.Bold = true; sheet.SheetView.FreezeRows(1); }
-    private static void Finish(IXLWorksheet sheet) { sheet.ColumnsUsed().AdjustToContents(1, 60); sheet.RangeUsed()?.SetAutoFilter(); }
 }
