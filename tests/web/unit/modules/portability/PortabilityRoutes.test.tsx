@@ -19,7 +19,7 @@ describe('portability routes', () => {
   afterEach(() => vi.unstubAllGlobals())
   beforeEach(() => {
     vi.clearAllMocks(); vi.stubGlobal('FileReader', Reader)
-    api.previewWorkbook.mockResolvedValue({ abas: [{ aba: 'Objetivos', linhas: 1, criacoes: 1, existentes: 0 }], criacoes: 1, existentes: 0, dadosAtuais: 4, completa: true, erros: [] })
+    api.previewWorkbook.mockResolvedValue({ previewIdMesclagem: 'merge-1', previewIdSubstituicao: 'replace-1', expiraEm: '2026-11-21T21:00:00Z', abas: [{ aba: 'Objetivos', linhas: 1, criacoes: 1, existentes: 0 }], criacoes: 1, existentes: 0, dadosAtuais: 4, completa: true, erros: [] })
     api.commitWorkbook.mockResolvedValue({ criados: 1, existentes: 0, excluidos: 4 })
   })
 
@@ -37,7 +37,7 @@ describe('portability routes', () => {
     expect(merge).toBeDisabled()
     fireEvent.click(screen.getByLabelText(/confirmo a criação de 1 item/i))
     fireEvent.click(merge)
-    await waitFor(() => expect(api.commitWorkbook).toHaveBeenCalledWith('eGxzeA==', true, false, false))
+    await waitFor(() => expect(api.commitWorkbook).toHaveBeenCalledWith('eGxzeA==', 'merge-1', true, false, false))
   })
 
   it('requires a destructive dialog before replacing all user data', async () => {
@@ -46,7 +46,7 @@ describe('portability routes', () => {
     fireEvent.click(await screen.findByRole('button', { name: /substituir todos os dados/i }))
     expect(screen.getByRole('alertdialog')).toHaveTextContent(/removerá 4 item/i)
     fireEvent.click(screen.getByRole('button', { name: /^substituir dados$/i }))
-    await waitFor(() => expect(api.commitWorkbook).toHaveBeenCalledWith('eGxzeA==', false, true, true))
+    await waitFor(() => expect(api.commitWorkbook).toHaveBeenCalledWith('eGxzeA==', 'replace-1', false, true, true))
     expect(await screen.findByText(/4 item.*removido/i)).toBeInTheDocument()
   })
 })

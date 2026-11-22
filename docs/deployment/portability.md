@@ -18,9 +18,13 @@ Internal database IDs are not exported. Relationships use readable names, and ev
 
 Import accepts `.xlsx` and `.xlsm` OpenXML workbooks up to 10 MB. `.xlsm` is only a compatible container: macros are never executed or persisted. Formulas in Seryn columns are rejected. Styles, unknown sheets, and other external content have no import semantics.
 
+Before loading a workbook, Seryn limits the package to 100 internal parts, 100 MB expanded, 50 MB per part, 10 worksheets, 50,000 used rows, and 500,000 used cells. Compression ratios above the accepted bound, invalid or duplicate internal paths, malformed XML, DTDs, and external relationships are rejected. Recognized data is additionally limited to 25,000 records, 10,000 objectives, and 5,000 rows in each classification sheet.
+
 Recognized sheets require the exact Seryn columns and valid values. A recognized but incompatible sheet makes the preview fail instead of being interpreted heuristically. Missing sheets are allowed for merge imports and never imply deletion.
 
 The preview reports new and equivalent rows for every recognized sheet. Equivalence uses normalized classification names and the complete meaningful data of records and objectives. New rows receive new internal IDs; exact equivalents are retained without duplication. Because the workbook intentionally has no stable internal identity, import never guesses that an edited row should update a different existing row.
+
+Preview authorizations expire after 30 minutes, belong to the current administrator session, and are valid once for the exact workbook, selected merge/replacement mode, and unchanged current user data. Changing the file or Seryn data requires a new preview.
 
 Two confirmed operations are available:
 

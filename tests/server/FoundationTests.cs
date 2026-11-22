@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,8 @@ using Seryn.Server.Persistence;
 namespace Seryn.Tests;
 
 public sealed class TestApplication(string directory, bool httpsRequired = false,
-    string username = "daniel", string? password = "Uma frase de teste segura 123!", string? passwordFile = null) : WebApplicationFactory<Program>
+    string username = "daniel", string? password = "Uma frase de teste segura 123!", string? passwordFile = null,
+    string? publishedBindAddress = null, bool allowInsecureRemote = false, string? trustedProxy = null) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -21,6 +23,10 @@ public sealed class TestApplication(string directory, bool httpsRequired = false
         builder.UseSetting("SERYN_ADMIN_PASSWORD_FILE", passwordFile ?? "");
         builder.UseSetting("Seryn:DataDirectory", directory);
         builder.UseSetting("Seryn:RequireHttps", httpsRequired.ToString());
+        builder.UseSetting("AllowedHosts", "localhost;127.0.0.1");
+        builder.UseSetting("Seryn:PublishedBindAddress", publishedBindAddress ?? "127.0.0.1");
+        builder.UseSetting("Seryn:AllowInsecureRemote", allowInsecureRemote.ToString());
+        if (trustedProxy is not null) builder.UseSetting("Seryn:TrustedProxies:0", trustedProxy);
         builder.UseSetting("Logging:LogLevel:Default", "Error");
     }
 }
@@ -211,6 +217,32 @@ public sealed class FoundationTests : IDisposable
     }
 
     [Fact]
+    public async Task Administrator_can_review_and_revoke_other_sessions_only()
+    {
+        await using var app = new TestApplication(directory);
+        using var first = app.CreateClient();
+        using var second = app.CreateClient();
+        Assert.Equal(HttpStatusCode.OK, (await Post(first, "login", new { username = "daniel", password = Password })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Post(second, "login", new { username = "daniel", password = Password })).StatusCode);
+
+        var sessions = (await first.GetFromJsonAsync<List<LoginSessionItem>>("/api/v1/auth/sessions"))!;
+        Assert.Equal(2, sessions.Count);
+        Assert.Single(sessions, x => x.Atual);
+        var other = sessions.Single(x => !x.Atual);
+        var csrf = await first.GetFromJsonAsync<CsrfResponse>("/api/v1/auth/csrf");
+        using var revoke = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/auth/sessions/{other.Id}");
+        revoke.Headers.Add("X-CSRF-TOKEN", csrf!.Token);
+        Assert.Equal(HttpStatusCode.NoContent, (await first.SendAsync(revoke)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await second.GetAsync("/api/v1/auth/session")).StatusCode);
+
+        var current = (await first.GetFromJsonAsync<List<LoginSessionItem>>("/api/v1/auth/sessions"))!.Single();
+        var currentCsrf = await first.GetFromJsonAsync<CsrfResponse>("/api/v1/auth/csrf");
+        using var currentRevoke = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/auth/sessions/{current.Id}");
+        currentRevoke.Headers.Add("X-CSRF-TOKEN", currentCsrf!.Token);
+        Assert.Equal(HttpStatusCode.BadRequest, (await first.SendAsync(currentRevoke)).StatusCode);
+    }
+
+    [Fact]
     public async Task Failed_attempts_lock_the_account_and_survive_restart()
     {
         await using (var app = new TestApplication(directory))
@@ -247,6 +279,55 @@ public sealed class FoundationTests : IDisposable
         using var secure = app.CreateClient(new() { BaseAddress = new Uri("https://localhost") });
         Assert.Equal(HttpStatusCode.OK, (await secure.GetAsync("/api/v1/auth/csrf")).StatusCode);
     }
+
+    [Fact]
+    public async Task Remote_plain_http_requires_explicit_operator_override()
+    {
+        await using var blocked = new TestApplication(directory, publishedBindAddress: "0.0.0.0");
+        var error = Assert.Throws<InvalidOperationException>(() => blocked.CreateClient());
+        Assert.Contains("SERYN_ALLOW_INSECURE_REMOTE", error.Message);
+
+        await using var allowed = new TestApplication(directory, publishedBindAddress: "0.0.0.0", allowInsecureRemote: true);
+        using var client = allowed.CreateClient();
+        Assert.NotNull(client);
+    }
+
+    [Fact]
+    public async Task Only_a_known_single_hop_proxy_can_establish_https()
+    {
+        await using var app = new TestApplication(directory, httpsRequired: true, trustedProxy: "10.0.0.1");
+        _ = app.CreateClient();
+        var known = await Proxied(app, "10.0.0.1", "https", "localhost");
+        Assert.Equal((int)HttpStatusCode.OK, known.Response.StatusCode);
+        Assert.Contains(known.Response.Headers["Set-Cookie"], value => value is not null && value.Contains("Seryn.Antiforgery") && value.Contains("secure", StringComparison.OrdinalIgnoreCase));
+
+        var unknown = await Proxied(app, "10.0.0.2", "https", "localhost");
+        Assert.Equal((int)HttpStatusCode.BadRequest, unknown.Response.StatusCode);
+        var multiple = await Proxied(app, "10.0.0.1", "https,http", "localhost");
+        Assert.Equal((int)HttpStatusCode.BadRequest, multiple.Response.StatusCode);
+        var badHost = await Proxied(app, "10.0.0.1", "https", "attacker.example");
+        Assert.Equal((int)HttpStatusCode.BadRequest, badHost.Response.StatusCode);
+    }
+
+    [Fact]
+    public void Invalid_network_addresses_fail_startup()
+    {
+        using var invalidBind = new TestApplication(directory, publishedBindAddress: "localhost");
+        Assert.Throws<InvalidOperationException>(() => invalidBind.CreateClient());
+        using var invalidProxy = new TestApplication(directory, trustedProxy: "not-an-ip");
+        Assert.Throws<FormatException>(() => invalidProxy.CreateClient());
+    }
+
+    private static Task<HttpContext> Proxied(TestApplication app, string remoteIp, string forwardedProto, string host) =>
+        app.Server.SendAsync(context =>
+        {
+            context.Connection.RemoteIpAddress = IPAddress.Parse(remoteIp);
+            context.Request.Method = HttpMethods.Get;
+            context.Request.Path = "/api/v1/auth/csrf";
+            context.Request.Scheme = "http";
+            context.Request.Host = new HostString(host);
+            context.Request.Headers["X-Forwarded-Proto"] = forwardedProto;
+        });
 
     public void Dispose()
     {

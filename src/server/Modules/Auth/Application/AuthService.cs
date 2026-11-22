@@ -13,7 +13,7 @@ public sealed class AuthGate : IDisposable
 }
 
 public sealed class AuthService(SerynDbContext db, AuthGate gate,
-    IPasswordHasher<LocalUser> hasher, TimeProvider clock)
+    IPasswordHasher<LocalUser> hasher, TimeProvider clock, IConfiguration configuration)
 {
     public async Task<LocalUser?> Login(string username, string password)
     {
@@ -35,7 +35,10 @@ public sealed class AuthService(SerynDbContext db, AuthGate gate,
                 verification == PasswordVerificationResult.Failed)
             {
                 user.FailedAttempts++;
-                if (user.FailedAttempts >= 5) user.LockedUntilUnix = now + 300;
+                var threshold = configuration.GetValue("Seryn:Security:LoginLockoutAttempts", 5);
+                var seconds = configuration.GetValue("Seryn:Security:LoginLockoutSeconds", 300);
+                if (threshold <= 0 || seconds <= 0) throw new InvalidOperationException("Os limites de bloqueio de login devem ser maiores que zero.");
+                if (user.FailedAttempts >= threshold) user.LockedUntilUnix = now + seconds;
                 await db.SaveChangesAsync();
                 return null;
             }
@@ -53,7 +56,13 @@ public sealed class AuthService(SerynDbContext db, AuthGate gate,
     {
         var now = clock.GetUtcNow();
         await db.Sessions.Where(x => x.ExpiresAtUnix <= now.ToUnixTimeSeconds()).ExecuteDeleteAsync();
-        var session = new LoginSession { Id = Guid.NewGuid().ToString("N"), ExpiresAtUnix = now.AddHours(8).ToUnixTimeSeconds() };
+        var session = new LoginSession
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            CreatedAtUnix = now.ToUnixTimeSeconds(),
+            LastUsedAtUnix = now.ToUnixTimeSeconds(),
+            ExpiresAtUnix = now.AddHours(8).ToUnixTimeSeconds()
+        };
         db.Sessions.Add(session);
         await db.SaveChangesAsync();
         return session;
