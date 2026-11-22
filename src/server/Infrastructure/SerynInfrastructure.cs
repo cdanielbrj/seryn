@@ -20,6 +20,7 @@ public static class SerynInfrastructure
         var paths = new SerynPaths(dataDirectory, keysDirectory);
         builder.Services.AddSingleton(paths);
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<AsyncKeyedLock>();
         builder.Services.AddDbContext<SerynDbContext>(options => options.UseSqlite(
             new SqliteConnectionStringBuilder
             {

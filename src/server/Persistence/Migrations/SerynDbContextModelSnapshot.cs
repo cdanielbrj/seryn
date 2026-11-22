@@ -223,6 +223,11 @@ namespace Seryn.Server.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("BLOB");
 
+                    b.Property<string>("ResponseHeadersJson")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("StatusCode")
                         .HasColumnType("INTEGER");
 

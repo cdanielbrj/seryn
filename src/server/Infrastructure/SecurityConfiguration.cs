@@ -19,6 +19,10 @@ public static class SecurityConfiguration
     {
         var requireHttps = builder.Configuration.GetValue("Seryn:RequireHttps", true);
         ValidateTransportConfiguration(builder.Configuration, requireHttps);
+        var loginLimit = Positive(builder.Configuration, "Seryn:Security:LoginRateLimit", 10);
+        var apiLimit = Positive(builder.Configuration, "Seryn:Security:ApiRateLimit", 120);
+        _ = Positive(builder.Configuration, "Seryn:Security:LoginLockoutAttempts", 5);
+        _ = Positive(builder.Configuration, "Seryn:Security:LoginLockoutSeconds", 300);
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -71,7 +75,7 @@ public static class SecurityConfiguration
         {
             options.AddPolicy("auth", _ => RateLimitPartition.GetFixedWindowLimiter("single-user-auth", _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
+                PermitLimit = loginLimit,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
@@ -80,7 +84,7 @@ public static class SecurityConfiguration
                 var partition = context.User.FindFirstValue("api_token") ?? "browser-session";
                 return RateLimitPartition.GetFixedWindowLimiter(partition, _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 120,
+                    PermitLimit = apiLimit,
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0
                 });
@@ -92,6 +96,13 @@ public static class SecurityConfiguration
             };
         });
         return builder;
+    }
+
+    private static int Positive(IConfiguration configuration, string key, int fallback)
+    {
+        var value = configuration.GetValue(key, fallback);
+        if (value <= 0) throw new InvalidOperationException($"{key} deve ser maior que zero.");
+        return value;
     }
 
     private static void ValidateTransportConfiguration(IConfiguration configuration, bool requireHttps)

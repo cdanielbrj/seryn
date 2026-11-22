@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Seryn.Server.Persistence;
 
@@ -8,9 +9,9 @@ namespace Seryn.Server.Infrastructure;
 public sealed class IdempotencyMiddleware(RequestDelegate next)
 {
     private const string Header = "Idempotency-Key";
-    private static readonly SemaphoreSlim Gate = new(1, 1);
+    private static readonly string[] PreservedHeaders = ["Location", "ETag", "Last-Modified", "Cache-Control", "Content-Language", "Link", "Deprecation", "Sunset"];
 
-    public async Task Invoke(HttpContext context, SerynDbContext db, TimeProvider clock)
+    public async Task Invoke(HttpContext context, SerynDbContext db, TimeProvider clock, AsyncKeyedLock locks)
     {
         if (!HttpMethods.IsPost(context.Request.Method) ||
             !context.User.HasClaim(claim => claim.Type == "api_token") ||
@@ -29,15 +30,8 @@ public sealed class IdempotencyMiddleware(RequestDelegate next)
         }
 
         var tokenId = Guid.Parse(context.User.FindFirst("api_token")!.Value);
-        await Gate.WaitAsync(context.RequestAborted);
-        try
-        {
+        using (await locks.Acquire($"idempotency:{tokenId:N}:{key}", context.RequestAborted))
             await Process(context, db, clock, tokenId, key);
-        }
-        finally
-        {
-            Gate.Release();
-        }
     }
 
     private async Task Process(HttpContext context, SerynDbContext db, TimeProvider clock, Guid tokenId, string key)
@@ -60,6 +54,8 @@ public sealed class IdempotencyMiddleware(RequestDelegate next)
             }
             context.Response.StatusCode = existing.StatusCode;
             context.Response.ContentType = existing.ContentType;
+            foreach (var header in JsonSerializer.Deserialize<Dictionary<string, string[]>>(existing.ResponseHeadersJson) ?? [])
+                context.Response.Headers[header.Key] = header.Value;
             context.Response.Headers["Idempotency-Replayed"] = "true";
             await context.Response.Body.WriteAsync(existing.ResponseBody);
             return;
@@ -82,6 +78,9 @@ public sealed class IdempotencyMiddleware(RequestDelegate next)
                     RequestHash = requestHash,
                     StatusCode = context.Response.StatusCode,
                     ContentType = context.Response.ContentType ?? "application/json",
+                    ResponseHeadersJson = JsonSerializer.Serialize(PreservedHeaders
+                        .Where(context.Response.Headers.ContainsKey)
+                        .ToDictionary(name => name, name => context.Response.Headers[name].ToArray(), StringComparer.OrdinalIgnoreCase)),
                     ResponseBody = responseBody,
                     ExpiresAtUnix = now + 24 * 60 * 60
                 });

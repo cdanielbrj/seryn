@@ -40,6 +40,24 @@ public sealed class PortabilitySecurityTests : IDisposable
     }
 
     [Fact]
+    public async Task Concurrent_import_commits_are_serialized_per_portable_dataset()
+    {
+        await using var app = new TestApplication(directory);
+        using var client = app.CreateClient();
+        await Login(client);
+        var payload = Convert.ToBase64String(Workbook("Concorrente"));
+        var previews = new List<WorkbookPreview>();
+        for (var index = 0; index < 12; index++) previews.Add(await Preview(client, payload));
+
+        var responses = await Task.WhenAll(previews.Select(preview =>
+            Commit(client, payload, preview.PreviewIdMesclagem!.Value, false)));
+
+        Assert.Single(responses, response => response.StatusCode == HttpStatusCode.OK);
+        Assert.Equal(11, responses.Count(response => response.StatusCode == HttpStatusCode.BadRequest));
+        Assert.Single((await client.GetFromJsonAsync<List<ObjectiveItem>>("/api/v1/objectives"))!, objective => objective.Nome == "Concorrente");
+    }
+
+    [Fact]
     public async Task Replacement_rolls_back_every_user_table_when_a_late_database_failure_occurs()
     {
         await using var app = new TestApplication(directory);

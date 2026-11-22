@@ -22,7 +22,7 @@ The scopes are:
 
 Tokens cannot call portability or token-administration endpoints. Future backup and restore endpoints will also require an interactive administrator session. Token creation, listing, and revocation require that session and CSRF. Scopes are immutable, active tokens are limited to twenty, expiration is optional, and revocation is immediate.
 
-Bearer-authenticated POST requests may send `Idempotency-Key`. Seryn binds the key to the token, path, query, method, and request body for 24 hours. An identical retry replays the stored non-server-error response; reuse with a different request returns conflict.
+Bearer-authenticated POST requests may send `Idempotency-Key`. Seryn binds the key to the token, path, query, method, and request body for 24 hours. An identical retry replays the stored non-server-error status, body, content type, and an explicit safe list of representation/navigation headers; reuse with a different request returns conflict. Synchronization is scoped to the token and key, so unrelated integration requests do not block each other. If cookie and Bearer credentials are both present on data endpoints, Bearer takes precedence without cookie fallback; policies explicitly restricted to the administrator session authenticate only the cookie.
 
 `/api/v1` preserves the names and meanings of existing fields. Additive response fields are allowed; removals, renamed fields, newly required inputs, or semantic changes require a new API version. The v1 identifiers remain in their current Brazilian Portuguese form. A future API version may choose language-neutral identifiers independently from UI localization.
 

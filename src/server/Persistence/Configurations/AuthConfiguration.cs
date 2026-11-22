@@ -47,6 +47,7 @@ internal static class AuthConfiguration
             record.Property(x => x.Key).HasMaxLength(128);
             record.Property(x => x.RequestHash).HasMaxLength(64);
             record.Property(x => x.ContentType).HasMaxLength(128);
+            record.Property(x => x.ResponseHeadersJson).HasMaxLength(2048);
             record.HasIndex(x => new { x.ApiTokenId, x.Key }).IsUnique();
             record.HasIndex(x => x.ExpiresAtUnix);
             record.HasOne<ApiToken>().WithMany().HasForeignKey(x => x.ApiTokenId).OnDelete(DeleteBehavior.Cascade);

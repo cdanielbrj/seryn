@@ -52,6 +52,7 @@ public sealed class IdempotencyRecord
     public string RequestHash { get; set; } = "";
     public int StatusCode { get; set; }
     public string ContentType { get; set; } = "application/json";
+    public string ResponseHeadersJson { get; set; } = "{}";
     public byte[] ResponseBody { get; set; } = [];
     public long ExpiresAtUnix { get; set; }
 }

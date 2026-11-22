@@ -10,10 +10,11 @@ using Seryn.Server.Modules.Records.Application;
 using Seryn.Server.Modules.Records.Contracts;
 using Seryn.Server.Modules.Records.Domain;
 using Seryn.Server.Persistence;
+using Seryn.Server.Infrastructure;
 
 namespace Seryn.Server.Modules.ImportExport.Application;
 
-internal sealed class WorkbookPortabilityService(SerynDbContext db, RecordCommandProcessor recordProcessor, TimeProvider clock)
+internal sealed class WorkbookPortabilityService(SerynDbContext db, RecordCommandProcessor recordProcessor, TimeProvider clock, AsyncKeyedLock locks)
 {
     private const int MaxBytes = 10 * 1024 * 1024;
     private static readonly string[] RequiredSheets = ["Registros", "Objetivos", "Tipos", "Categorias", "Pagamentos"];
@@ -99,6 +100,7 @@ internal sealed class WorkbookPortabilityService(SerynDbContext db, RecordComman
 
     public async Task<(ImportCommitResult? Value, Dictionary<string, string[]>? Errors)> Commit(WorkbookCommitRequest request, string sessionId)
     {
+        using var importLock = await locks.Acquire("portable-user-data");
         var model = Parse(request.ConteudoBase64);
         if (model.Errors.Count > 0) return (null, new() { ["arquivo"] = model.Errors.ToArray() });
         var calculation = await CalculatePreview(model);

@@ -13,6 +13,10 @@ Copy `.env.example` to `.env` for Compose-based installations. `.env` is local, 
 | `SERYN_REQUIRE_HTTPS` | Reject API requests not observed as HTTPS | `false` in local Compose |
 | `SERYN_ALLOW_INSECURE_REMOTE` | Explicitly permit non-loopback plain HTTP | `false` |
 | `SERYN_TRUSTED_PROXY` | Exact reverse-proxy IP trusted for forwarded headers | `127.0.0.1` |
+| `SERYN_LOGIN_RATE_LIMIT` | Global login attempts accepted per minute | `10` |
+| `SERYN_API_RATE_LIMIT` | API requests accepted per minute, per token or browser-session partition | `120` |
+| `SERYN_LOGIN_LOCKOUT_ATTEMPTS` | Consecutive failed credentials before persistent account lockout | `5` |
+| `SERYN_LOGIN_LOCKOUT_SECONDS` | Persistent account lockout duration | `300` |
 
 Single-quote `.env` values containing `$`, `#`, or spaces to prevent Compose interpolation.
 
@@ -37,6 +41,8 @@ SERYN_TRUSTED_PROXY=192.168.1.10
 ```
 
 Restrict the published port to the proxy with a firewall. The proxy must preserve `Host`, overwrite `X-Forwarded-Proto` with `https`, and manage `X-Forwarded-For`. Configure the exact address observed by the container; never trust an arbitrary network.
+
+After configuring the proxy, verify that the public HTTPS origin can log in and that direct HTTP API access is rejected. A trusted single-hop request must produce Secure session and antiforgery cookies; forwarded headers from any other source or with multiple values are ignored and cannot establish HTTPS. Cloudflare Tunnel or VPN routing does not change which immediate peer address Kestrel observes, so set `SERYN_TRUSTED_PROXY` to that peer, not to a public client address.
 
 Direct HTTP may be explicitly selected on a trusted LAN or private overlay network, but credentials then travel without transport encryption.
 

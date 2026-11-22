@@ -68,12 +68,30 @@ public sealed class ApiIntegrationTests : IDisposable
         var replay = requests.Single(response => response.Headers.Contains("Idempotency-Replayed"));
         Assert.Equal(HttpStatusCode.Created, first.StatusCode);
         Assert.Equal(HttpStatusCode.Created, replay.StatusCode);
+        Assert.Equal(first.Headers.Location, replay.Headers.Location);
         Assert.True(replay.Headers.TryGetValues("Idempotency-Replayed", out var values) && values.Single() == "true");
         Assert.Equal((await first.Content.ReadFromJsonAsync<RecordItem>())!.Id, (await replay.Content.ReadFromJsonAsync<RecordItem>())!.Id);
         Assert.Single((await client.GetFromJsonAsync<List<RecordItem>>("/api/v1/records"))!);
 
         var conflict = await IdempotentPost(client, "/api/v1/records", "record-create-123", new { nome = "Outro" });
         Assert.Equal(HttpStatusCode.Conflict, conflict.StatusCode);
+    }
+
+    [Fact]
+    public async Task Bearer_takes_precedence_when_cookie_and_authorization_are_both_present()
+    {
+        await using var app = new TestApplication(directory);
+        using var mixed = app.CreateClient();
+        await Login(mixed);
+        var readOnly = await CreateToken(mixed, "Leitura mista", ["data:read"]);
+
+        mixed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", readOnly.Token);
+        Assert.Equal(HttpStatusCode.OK, (await mixed.GetAsync("/api/v1/records")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await mixed.PostAsJsonAsync("/api/v1/types", new { nome = "Não permitido" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await mixed.GetAsync("/api/v1/auth/sessions")).StatusCode);
+
+        mixed.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "seryn_pat_invalid");
+        Assert.Equal(HttpStatusCode.Unauthorized, (await mixed.GetAsync("/api/v1/records")).StatusCode);
     }
 
     [Fact]
