@@ -4,7 +4,7 @@ using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
 using Seryn.Server.Modules.Auth.Contracts;
 using Seryn.Server.Modules.Classifications.Contracts;
-using Seryn.Server.Modules.ImportExport.Contracts;
+using Seryn.Server.Modules.Import.Contracts;
 using Seryn.Server.Modules.Objectives.Contracts;
 using Seryn.Server.Modules.Records.Contracts;
 

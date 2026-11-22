@@ -1,4 +1,4 @@
-namespace Seryn.Server.Modules.ImportExport.Contracts;
+namespace Seryn.Server.Modules.Import.Contracts;
 
 public sealed record ImportCommitResult(int Criados, int Existentes, int Excluidos);
 public sealed record WorkbookRequest(string? ConteudoBase64);

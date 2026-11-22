@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using System.Xml;
 
-namespace Seryn.Server.Modules.ImportExport.Application;
+namespace Seryn.Server.Modules.Import.Workbook;
 
 internal static class OpenXmlPreflight
 {

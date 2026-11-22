@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Seryn.Server.Modules.Auth.Contracts;
 using Seryn.Server.Modules.Classifications.Contracts;
-using Seryn.Server.Modules.ImportExport.Contracts;
+using Seryn.Server.Modules.Import.Contracts;
 using Seryn.Server.Modules.Objectives.Contracts;
 using Seryn.Server.Persistence;
 

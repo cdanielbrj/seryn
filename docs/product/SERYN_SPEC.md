@@ -332,7 +332,7 @@ Desktop / iPhone PWA / browser
 
 The Docker build compiles React in a Node stage, builds/publishes .NET in an SDK stage, and copies only published output into the ASP.NET runtime. No Node, Nginx, PHP, or worker remains. API and frontend share origin/port. SPA fallback must never hide API 404s.
 
-Suggested repository structure keeps one server project and one test project, with logical Domain, Projections, Persistence, ImportExport, and Api modules. Keep projections independent of EF and HTTP without turning modules into deployment services.
+Suggested repository structure keeps one server project and one test project, with logical Domain, Projections, Persistence, Import, Export, and Api modules. Import validation/commit and export generation are distinct capabilities even though both preserve the same portability workbook contract. Keep projections independent of EF and HTTP without turning modules into deployment services.
 
 ### Shared application flow
 
