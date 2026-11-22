@@ -53,8 +53,8 @@ public sealed class PortabilityTests : IDisposable
             Assert.Empty(preview.Erros);
             Assert.Equal(5, preview.Abas.Count);
             Assert.Equal(6, preview.Criacoes);
-            Assert.Equal(HttpStatusCode.BadRequest, (await Send(destinationClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, confirmarCriacoes = false })).StatusCode);
-            Assert.Equal(HttpStatusCode.OK, (await Send(destinationClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, confirmarCriacoes = true })).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await Send(destinationClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, previewId = preview.PreviewIdMesclagem, confirmarCriacoes = false })).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await Send(destinationClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, previewId = preview.PreviewIdMesclagem, confirmarCriacoes = true })).StatusCode);
 
             var restoredRecord = (await destinationClient.GetFromJsonAsync<List<RecordItem>>("/api/v1/records"))!.Single();
             Assert.Equal(250050, restoredRecord.ValorCentavos);
@@ -83,10 +83,11 @@ public sealed class PortabilityTests : IDisposable
             var staleCategory = await Category(destinationClient, "Descartar");
             Assert.Equal(HttpStatusCode.Created, (await Send(destinationClient, HttpMethod.Post, "/api/v1/records", new { nome = "Registro antigo", movimentacao = "saida", tipoId = staleType.Id, categoriaId = staleCategory.Id, pagamentoId = stalePayment.Id, valorCentavos = 100, data = "2026-01", recorrencia = "unica", ocorrencia = "definida", parcelas = 1 })).StatusCode);
             Assert.Equal(HttpStatusCode.Created, (await Send(destinationClient, HttpMethod.Post, "/api/v1/objectives", new { nome = "Objetivo antigo", valorEstimadoCentavos = 100, interesse = "listado", prioridade = 0 })).StatusCode);
-            Assert.Equal(HttpStatusCode.BadRequest, (await Send(destinationClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, substituirDados = true, confirmarSubstituicao = false })).StatusCode);
+            var replacementPreview = (await (await Send(destinationClient, HttpMethod.Post, "/api/v1/portability/workbook/preview", new { conteudoBase64 = payload })).Content.ReadFromJsonAsync<WorkbookPreview>())!;
+            Assert.Equal(HttpStatusCode.BadRequest, (await Send(destinationClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, previewId = replacementPreview.PreviewIdSubstituicao, substituirDados = true, confirmarSubstituicao = false })).StatusCode);
             Assert.Equal(2, (await destinationClient.GetFromJsonAsync<List<RecordItem>>("/api/v1/records"))!.Count);
 
-            var replacementResponse = await Send(destinationClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, substituirDados = true, confirmarSubstituicao = true });
+            var replacementResponse = await Send(destinationClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, previewId = replacementPreview.PreviewIdSubstituicao, substituirDados = true, confirmarSubstituicao = true });
             Assert.Equal(HttpStatusCode.OK, replacementResponse.StatusCode);
             var replacement = (await replacementResponse.Content.ReadFromJsonAsync<ImportCommitResult>())!;
             Assert.Equal(11, replacement.Excluidos);
@@ -102,8 +103,9 @@ public sealed class PortabilityTests : IDisposable
             await using var recordsOnly = new TestApplication(recordsOnlyDirectory);
             using var recordsClient = recordsOnly.CreateClient(); await Login(recordsClient);
             var payload = Convert.ToBase64String(stream.ToArray());
-            Assert.Equal(HttpStatusCode.BadRequest, (await Send(recordsClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, substituirDados = true, confirmarSubstituicao = true })).StatusCode);
-            Assert.Equal(HttpStatusCode.OK, (await Send(recordsClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, confirmarCriacoes = true })).StatusCode);
+            var recordsPreview = (await (await Send(recordsClient, HttpMethod.Post, "/api/v1/portability/workbook/preview", new { conteudoBase64 = payload })).Content.ReadFromJsonAsync<WorkbookPreview>())!;
+            Assert.Equal(HttpStatusCode.BadRequest, (await Send(recordsClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, previewId = recordsPreview.PreviewIdMesclagem, substituirDados = true, confirmarSubstituicao = true })).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await Send(recordsClient, HttpMethod.Post, "/api/v1/portability/workbook/commit", new { conteudoBase64 = payload, previewId = recordsPreview.PreviewIdMesclagem, confirmarCriacoes = true })).StatusCode);
             var restored = (await recordsClient.GetFromJsonAsync<List<RecordItem>>("/api/v1/records"))!.Single();
             Assert.Equal("Compra", restored.TipoNome); Assert.Equal("Escritório", restored.CategoriaNome); Assert.Equal("Pix", restored.PagamentoNome);
         }

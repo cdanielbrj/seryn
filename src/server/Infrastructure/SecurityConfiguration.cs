@@ -18,6 +18,7 @@ public static class SecurityConfiguration
     public static WebApplicationBuilder AddSerynSecurity(this WebApplicationBuilder builder)
     {
         var requireHttps = builder.Configuration.GetValue("Seryn:RequireHttps", true);
+        ValidateTransportConfiguration(builder.Configuration, requireHttps);
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -93,6 +94,18 @@ public static class SecurityConfiguration
         return builder;
     }
 
+    private static void ValidateTransportConfiguration(IConfiguration configuration, bool requireHttps)
+    {
+        var publishedAddress = configuration["Seryn:PublishedBindAddress"];
+        if (string.IsNullOrWhiteSpace(publishedAddress)) return;
+        if (!IPAddress.TryParse(publishedAddress, out var address))
+            throw new InvalidOperationException("Seryn:PublishedBindAddress deve ser um endereço IP válido.");
+        var local = IPAddress.IsLoopback(address);
+        var allowInsecureRemote = configuration.GetValue("Seryn:AllowInsecureRemote", false);
+        if (!local && !requireHttps && !allowInsecureRemote)
+            throw new InvalidOperationException("A publicação HTTP fora do loopback exige HTTPS ou SERYN_ALLOW_INSECURE_REMOTE=true.");
+    }
+
     private static void AddDataPolicy(AuthorizationOptions options, string scope) =>
         options.AddPolicy(scope, policy => policy.RequireAssertion(context =>
             context.User.Identity?.AuthenticationType == CookieAuthenticationDefaults.AuthenticationScheme ||
@@ -103,7 +116,14 @@ public static class SecurityConfiguration
         var db = context.HttpContext.RequestServices.GetRequiredService<SerynDbContext>();
         var clock = context.HttpContext.RequestServices.GetRequiredService<TimeProvider>();
         var id = context.Principal?.FindFirstValue("session");
-        if (!await db.Sessions.AnyAsync(x => x.Id == id && x.ExpiresAtUnix > clock.GetUtcNow().ToUnixTimeSeconds()))
+        var now = clock.GetUtcNow().ToUnixTimeSeconds();
+        var session = await db.Sessions.SingleOrDefaultAsync(x => x.Id == id && x.ExpiresAtUnix > now);
+        if (session is null)
             context.RejectPrincipal();
+        else if (session.LastUsedAtUnix < now - 3600)
+        {
+            session.LastUsedAtUnix = now;
+            await db.SaveChangesAsync();
+        }
     }
 }

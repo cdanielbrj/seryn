@@ -11,6 +11,8 @@ services:
       SERYN_ADMIN_PASSWORD: "${SERYN_ADMIN_PASSWORD:-}"
       SERYN_ADMIN_PASSWORD_FILE: "${SERYN_ADMIN_PASSWORD_FILE:-}"
       Seryn__RequireHttps: "${SERYN_REQUIRE_HTTPS:-false}"
+      Seryn__PublishedBindAddress: "${SERYN_BIND_ADDRESS:-127.0.0.1}"
+      Seryn__AllowInsecureRemote: "${SERYN_ALLOW_INSECURE_REMOTE:-false}"
       Seryn__TrustedProxies__0: "${SERYN_TRUSTED_PROXY:-127.0.0.1}"
       AllowedHosts: "${SERYN_ALLOWED_HOSTS:-localhost;127.0.0.1}"
     restart: unless-stopped

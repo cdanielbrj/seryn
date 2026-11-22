@@ -19,6 +19,7 @@ public static class AuthModule
         services.AddSingleton<AuthGate>();
         services.AddScoped<AuthService>();
         services.AddScoped<ApiTokenService>();
+        services.AddScoped<SessionService>();
         services.AddScoped<IPasswordHasher<LocalUser>, PasswordHasher<LocalUser>>();
         services.Configure<PasswordHasherOptions>(options => options.IterationCount = 210_000);
         return services;
@@ -52,6 +53,17 @@ public static class AuthModule
 
         auth.MapGet("/session", (HttpContext context) => new SessionResponse(context.User.Identity!.Name!)).RequireAuthorization("admin-session")
             .WithName("GetSession").WithSummary("Obtém a sessão administrativa atual");
+        var sessions = auth.MapGroup("/sessions").RequireAuthorization("admin-session");
+        sessions.MapGet("/", (HttpContext context, SessionService service) => service.List(context.User.FindFirstValue("session")!))
+            .WithName("ListSessions").WithSummary("Lista sessões administrativas ativas");
+        sessions.MapDelete("/{id}", async (string id, HttpContext context, SessionService service) =>
+            await service.Revoke(id, context.User.FindFirstValue("session")!)
+                ? Results.NoContent()
+                : Results.Problem(statusCode: 400, title: "A sessão atual deve ser encerrada usando Sair da Seryn."))
+            .WithName("RevokeSession").WithSummary("Revoga outra sessão administrativa");
+        sessions.MapPost("/revoke-others", async (HttpContext context, SessionService service) =>
+            Results.Ok(new { revogadas = await service.RevokeOthers(context.User.FindFirstValue("session")!) }))
+            .WithName("RevokeOtherSessions").WithSummary("Revoga todas as outras sessões administrativas");
         auth.MapPost("/logout", async (HttpContext context, SerynDbContext db) =>
         {
             var id = context.User.FindFirstValue("session");

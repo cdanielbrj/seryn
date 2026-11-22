@@ -53,7 +53,13 @@ public sealed class AuthService(SerynDbContext db, AuthGate gate,
     {
         var now = clock.GetUtcNow();
         await db.Sessions.Where(x => x.ExpiresAtUnix <= now.ToUnixTimeSeconds()).ExecuteDeleteAsync();
-        var session = new LoginSession { Id = Guid.NewGuid().ToString("N"), ExpiresAtUnix = now.AddHours(8).ToUnixTimeSeconds() };
+        var session = new LoginSession
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            CreatedAtUnix = now.ToUnixTimeSeconds(),
+            LastUsedAtUnix = now.ToUnixTimeSeconds(),
+            ExpiresAtUnix = now.AddHours(8).ToUnixTimeSeconds()
+        };
         db.Sessions.Add(session);
         await db.SaveChangesAsync();
         return session;

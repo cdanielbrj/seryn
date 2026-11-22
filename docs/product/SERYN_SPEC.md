@@ -219,11 +219,13 @@ SQLite is the operational source of truth. Export produces a portable snapshot o
 - Do not export internal IDs. Relationships use readable classification names, and record rows remain self-contained enough to reconstruct them.
 - Require exact Seryn headers and values in recognized sheets. Ignore unknown sheets and presentation details rather than assigning them product semantics.
 - Preview new and equivalent rows before commit. Exact equivalents must not duplicate silently.
+- Bind commit to a short-lived, single-use preview for the same administrator session, exact file, selected mode, and unchanged current user data.
 - Merge creates new rows while preserving current data. Missing sheets are allowed and never imply deletion.
 - Complete replacement requires all five sheets and a separate destructive confirmation. It deletes only user-entered records, objectives, and classifications, then imports the workbook in the same transaction.
 - Replacement and merge never change the local user, credentials, sessions, keys, access information, or deployment configuration.
 - Reject invalid amounts, zero/negative counts, unknown recurrences, incompatible month values, formulas, and conflicting classifications with intelligible errors before mutation.
 - Limit workbook uploads to 10 MB and validate all input.
+- Bound OpenXML expansion, parts, worksheets, rows, cells, compression ratio, and per-entity counts before general workbook parsing. Reject external relationships and malformed packages.
 - Expanded projection export, if added later, is a separate operation named clearly as a period projection and must not be reimported as original data.
 
 ### Database recovery and migrations
@@ -378,6 +380,8 @@ Names may vary modestly, but `/api/v1`, semantics, authentication, validation, D
 - Initial provisioning must prevent remote takeover. Local/protected setup or a temporary provisioning secret is acceptable.
 - Cookies are HttpOnly, Secure under HTTPS, and appropriately SameSite. Protect cookie-authenticated mutations from CSRF, and address XSS, brute force, path traversal, and upload limits.
 - Support LAN/Tailscale and trusted HTTPS proxies without requiring a specific provider. Trust forwarded headers only from configured proxies.
+- Refuse non-loopback plain-HTTP publication unless the operator explicitly enables the insecure-remote override.
+- Allow the administrator to inspect and revoke other active sessions; Bearer tokens cannot administer sessions.
 - Authentication exists before real financial data and CRUD are exposed.
 - PWA caching is limited to safe static assets. The current product has no offline writes or synchronization.
 

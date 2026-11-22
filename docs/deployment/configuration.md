@@ -11,6 +11,7 @@ Copy `.env.example` to `.env` for Compose-based installations. `.env` is local, 
 | `SERYN_PORT` | Host port published by Compose | `8080` |
 | `SERYN_ALLOWED_HOSTS` | ASP.NET Core allowed hosts | `localhost;127.0.0.1` |
 | `SERYN_REQUIRE_HTTPS` | Reject API requests not observed as HTTPS | `false` in local Compose |
+| `SERYN_ALLOW_INSECURE_REMOTE` | Explicitly permit non-loopback plain HTTP | `false` |
 | `SERYN_TRUSTED_PROXY` | Exact reverse-proxy IP trusted for forwarded headers | `127.0.0.1` |
 
 Single-quote `.env` values containing `$`, `#`, or spaces to prevent Compose interpolation.
@@ -38,3 +39,5 @@ SERYN_TRUSTED_PROXY=192.168.1.10
 Restrict the published port to the proxy with a firewall. The proxy must preserve `Host`, overwrite `X-Forwarded-Proto` with `https`, and manage `X-Forwarded-For`. Configure the exact address observed by the container; never trust an arbitrary network.
 
 Direct HTTP may be explicitly selected on a trusted LAN or private overlay network, but credentials then travel without transport encryption.
+
+Compose reports its published bind address to the application. When that address is not loopback, startup fails unless HTTPS enforcement is enabled or `SERYN_ALLOW_INSECURE_REMOTE=true` explicitly accepts plain-HTTP risk. VPN reachability does not implicitly disable this guardrail.

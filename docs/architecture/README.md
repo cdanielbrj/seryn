@@ -19,6 +19,7 @@ The current implementation is governed by the accepted architecture decision rec
 | [ADR-010](adr/ADR-010-OBJECTIVES.md) | Independent objective storage and CRUD | Accepted |
 | [ADR-011](adr/ADR-011-USER-DATA-PORTABILITY.md) | Canonical workbook user-data portability | Accepted |
 | [ADR-012](adr/ADR-012-API-INTEGRATION-ACCESS.md) | Scoped Bearer tokens and stable integration contracts | Accepted |
+| [ADR-013](adr/ADR-013-SECURITY-AND-IMPORT-HARDENING.md) | Deployment, session, and workbook hardening | Accepted |
 
 ## When to add an ADR
 

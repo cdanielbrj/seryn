@@ -11,9 +11,11 @@ public static class ImportExportModule
         var group = api.MapGroup("/portability").WithTags("Importação e exportação").RequireAuthorization("admin-session");
         group.MapGet("/export.xlsx", async (WorkbookPortabilityService service) => Results.File(await service.Export(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"seryn-dados-{DateTime.UtcNow:yyyyMMdd}.xlsx"))
             .WithName("ExportWorkbook").WithSummary("Exporta os dados portáveis da instalação");
-        group.MapPost("/workbook/preview", async (WorkbookRequest request, WorkbookPortabilityService service) => Result(await service.Preview(request.ConteudoBase64)))
+        group.MapPost("/workbook/preview", async (WorkbookRequest request, HttpContext context, WorkbookPortabilityService service) =>
+            Result(await service.Preview(request.ConteudoBase64, context.User.FindFirst("session")!.Value)))
             .WithName("PreviewWorkbookImport").WithSummary("Valida e pré-visualiza uma importação");
-        group.MapPost("/workbook/commit", async (WorkbookCommitRequest request, WorkbookPortabilityService service) => Result(await service.Commit(request)))
+        group.MapPost("/workbook/commit", async (WorkbookCommitRequest request, HttpContext context, WorkbookPortabilityService service) =>
+            Result(await service.Commit(request, context.User.FindFirst("session")!.Value)))
             .WithName("CommitWorkbookImport").WithSummary("Confirma uma importação previamente revisada");
     }
     private static IResult Result<T>((T? Value, Dictionary<string, string[]>? Errors) result) => result.Errors is null ? Results.Ok(result.Value) : Results.ValidationProblem(result.Errors);

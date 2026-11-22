@@ -269,7 +269,13 @@ namespace Seryn.Server.Persistence.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
+                    b.Property<long>("CreatedAtUnix")
+                        .HasColumnType("INTEGER");
+
                     b.Property<long>("ExpiresAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("LastUsedAtUnix")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -357,6 +363,45 @@ namespace Seryn.Server.Persistence.Migrations
                     b.ToTable("payment_methods", (string)null);
                 });
 
+            modelBuilder.Entity("Seryn.Server.Persistence.WorkbookImportPreview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("ConsumedAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CurrentDataHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("ExpiresAtUnix")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ReplaceData")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SessionId")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WorkbookHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAtUnix");
+
+                    b.HasIndex("SessionId");
+
+                    b.ToTable("workbook_import_previews", (string)null);
+                });
+
             modelBuilder.Entity("Seryn.Server.Persistence.FinancialCategory", b =>
                 {
                     b.HasOne("Seryn.Server.Persistence.FinancialCategory", "Parent")
@@ -398,6 +443,15 @@ namespace Seryn.Server.Persistence.Migrations
                     b.HasOne("Seryn.Server.Persistence.ApiToken", null)
                         .WithMany()
                         .HasForeignKey("ApiTokenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Seryn.Server.Persistence.WorkbookImportPreview", b =>
+                {
+                    b.HasOne("Seryn.Server.Persistence.LoginSession", null)
+                        .WithMany()
+                        .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

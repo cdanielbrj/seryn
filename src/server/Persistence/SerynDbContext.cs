@@ -15,7 +15,20 @@ public sealed class LocalUser
 public sealed class LoginSession
 {
     public string Id { get; set; } = "";
+    public long CreatedAtUnix { get; set; }
+    public long LastUsedAtUnix { get; set; }
     public long ExpiresAtUnix { get; set; }
+}
+
+public sealed class WorkbookImportPreview
+{
+    public Guid Id { get; set; }
+    public string SessionId { get; set; } = "";
+    public string WorkbookHash { get; set; } = "";
+    public string CurrentDataHash { get; set; } = "";
+    public bool ReplaceData { get; set; }
+    public long ExpiresAtUnix { get; set; }
+    public long? ConsumedAtUnix { get; set; }
 }
 
 public sealed class ApiToken
@@ -47,6 +60,7 @@ public sealed class SerynDbContext(DbContextOptions<SerynDbContext> options) : D
 {
     public DbSet<LocalUser> Users => Set<LocalUser>();
     public DbSet<LoginSession> Sessions => Set<LoginSession>();
+    public DbSet<WorkbookImportPreview> WorkbookImportPreviews => Set<WorkbookImportPreview>();
     public DbSet<ApiToken> ApiTokens => Set<ApiToken>();
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
     public DbSet<FinancialType> FinancialTypes => Set<FinancialType>();

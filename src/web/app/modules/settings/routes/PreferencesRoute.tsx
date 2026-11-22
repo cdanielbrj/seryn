@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRight, CreditCard, Download, KeyRound, Layers, LogOut, Tag, Upload } from 'lucide-react'
+import { ChevronRight, CreditCard, Download, KeyRound, Layers, LogOut, ShieldCheck, Tag, Upload } from 'lucide-react'
 import { ApiError, logout as endSession } from '@/modules/auth/api/authApi'
 import { Button } from '@/components/primitives/Button'
 import { ThemeControl } from '@/components/patterns/ThemeControl'
@@ -18,7 +18,7 @@ export function PreferencesRoute({ username, onLogout }: { username: string; onL
   }
   return <><header className="page-heading"><h1 tabIndex={-1}>Ajustes</h1><p>Seu espaço, do seu jeito.</p></header><div className="settings-grid">
     <section className="panel"><h2>Aparência</h2><p className="muted">Escolha como a Seryn aparece neste dispositivo.</p><ThemeControl expanded /></section>
-    <section className="panel"><h2>Seu acesso</h2><p className="muted">Conectado como <strong>{username}</strong>.</p><Button variant="outline" onClick={() => { void logout() }} disabled={busy}><LogOut size={18} aria-hidden="true" />{busy ? 'Saindo…' : 'Sair da Seryn'}</Button>{error && <p className="form-error" role="alert">{error}</p>}</section>
+    <section className="panel"><h2>Seu acesso</h2><p className="muted">Conectado como <strong>{username}</strong>.</p><div className="settings-links"><Link to="/ajustes/sessoes"><ShieldCheck aria-hidden="true" />Sessões ativas<ChevronRight aria-hidden="true" /></Link></div><Button variant="outline" onClick={() => { void logout() }} disabled={busy}><LogOut size={18} aria-hidden="true" />{busy ? 'Saindo…' : 'Sair da Seryn'}</Button>{error && <p className="form-error" role="alert">{error}</p>}</section>
     <section className="panel"><h2>Integrações</h2><div className="settings-links"><Link to="/ajustes/tokens"><KeyRound aria-hidden="true" />Tokens de integração<ChevronRight aria-hidden="true" /></Link></div></section>
     <section className="panel"><h2>Organização</h2><div className="settings-links"><Link to="/categorias"><Layers aria-hidden="true" />Categorias<ChevronRight aria-hidden="true" /></Link><Link to="/tipos"><Tag aria-hidden="true" />Tipos<ChevronRight aria-hidden="true" /></Link><Link to="/pagamentos"><CreditCard aria-hidden="true" />Pagamentos<ChevronRight aria-hidden="true" /></Link></div></section>
     <section className="panel"><h2>Dados e portabilidade</h2><div className="settings-links"><Link to="/exportar"><Download aria-hidden="true" />Exportar dados<ChevronRight aria-hidden="true" /></Link><Link to="/importar"><Upload aria-hidden="true" />Importar dados<ChevronRight aria-hidden="true" /></Link></div></section>
