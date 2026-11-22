@@ -5,14 +5,18 @@ import { formatMoney } from '@/formatters/currency'
 import { formatMonth } from '../lib/formatRecord'
 import { recurrenceLabels, type RecordItem } from '../model/record'
 
-export function RecordsList({ records, loading, onDelete }: { records: RecordItem[]; loading: boolean; onDelete: (record: RecordItem) => void }) {
+export function RecordsList({ records, hasSearch, loading, onDelete }: { records: RecordItem[]; hasSearch: boolean; loading: boolean; onDelete: (record: RecordItem) => void }) {
   return <section className="panel records-list" aria-label="Registros cadastrados">
-    {loading ? <p className="records-state" role="status">Carregando…</p> : records.length === 0 ? <RecordsEmpty /> : <div className="record-rows">{records.map(record => <RecordRow key={record.id} record={record} onDelete={onDelete} />)}</div>}
+    {loading ? <p className="records-state" role="status">Carregando…</p> : records.length === 0 ? hasSearch ? <RecordsNotFound /> : <RecordsEmpty /> : <div className="record-rows">{records.map(record => <RecordRow key={record.id} record={record} onDelete={onDelete} />)}</div>}
   </section>
 }
 
 function RecordsEmpty() {
   return <div className="records-empty"><CalendarDays aria-hidden="true" /><h2>Nenhum registro cadastrado</h2><p>Cadastre uma entrada ou saída para começar seu planejamento.</p><Button asChild><Link to="/registros/novo"><Plus size={18} />Criar primeiro registro</Link></Button></div>
+}
+
+function RecordsNotFound() {
+  return <div className="records-empty"><CalendarDays aria-hidden="true" /><h2>Nenhum registro encontrado</h2><p>Revise os termos da busca e tente novamente.</p></div>
 }
 
 function RecordRow({ record, onDelete }: { record: RecordItem; onDelete: (record: RecordItem) => void }) {

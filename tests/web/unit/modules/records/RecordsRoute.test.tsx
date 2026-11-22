@@ -34,3 +34,33 @@ it('lista e exclui um registro somente após confirmação', async () => {
   await user.click(screen.getByRole('button', { name: 'Excluir registro' }))
   await waitFor(() => expect(screen.getByText('Nenhum registro cadastrado')).toBeInTheDocument())
 })
+
+it('busca por título, tipo, categoria e pagamento, sem diferenciar acentos', async () => {
+  const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (String(input).endsWith('/records') && !init?.method) return new Response(JSON.stringify([
+      { id: 'record-1', nome: 'Assinatura API', movimentacao: 'saida', tipoId: 'type-1', tipoNome: 'Assinatura', categoriaId: 'category-1', categoriaNome: 'Servidor', pagamentoId: 'payment-1', pagamentoNome: 'Pix', valorCentavos: 5990, data: '2027-01', recorrencia: 'mensal', ocorrencia: 'indefinida', parcelas: null },
+      { id: 'record-2', nome: 'Café especial', movimentacao: 'saida', tipoId: 'type-2', tipoNome: 'Compra', categoriaId: 'category-2', categoriaNome: 'Alimentação', pagamentoId: 'payment-2', pagamentoNome: 'Cartão', valorCentavos: 1500, data: '2027-01', recorrencia: 'unica', ocorrencia: 'definida', parcelas: 1 },
+    ]))
+    throw new Error(`Unexpected request: ${init?.method ?? 'GET'} ${input}`)
+  })
+  vi.stubGlobal('fetch', fetch)
+  const user = userEvent.setup()
+  render(<MemoryRouter><RecordsRoute /></MemoryRouter>)
+
+  await screen.findByText('Assinatura API')
+  const search = screen.getByRole('searchbox', { name: 'Buscar registros' })
+  for (const [term, expected, hidden] of [
+    ['assinatura', 'Assinatura API', 'Café especial'],
+    ['compra', 'Café especial', 'Assinatura API'],
+    ['alimentacao', 'Café especial', 'Assinatura API'],
+    ['pix', 'Assinatura API', 'Café especial'],
+  ]) {
+    await user.clear(search)
+    await user.type(search, term)
+    expect(screen.getByText(expected)).toBeInTheDocument()
+    expect(screen.queryByText(hidden)).not.toBeInTheDocument()
+  }
+  await user.clear(search)
+  await user.type(search, 'inexistente')
+  expect(screen.getByText('Nenhum registro encontrado')).toBeInTheDocument()
+})

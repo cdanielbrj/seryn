@@ -1,6 +1,12 @@
 .records-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .records-heading > a { flex-shrink: 0; }
 .records-error { margin-bottom: 16px; }
+.records-filters { margin-bottom: 20px; padding: 16px 20px; }
+.records-filters label { display: flex; flex-direction: column; gap: 7px; font-size: 13px; font-weight: 650; }
+.records-search-input { display: flex; align-items: center; gap: 9px; max-width: 520px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-solid); color: var(--muted); }
+.records-search-input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.records-search-input input { width: 100%; min-height: 42px; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.records-search-input input:focus { outline: 0; box-shadow: none; }
 .records-list { padding: 8px 24px; }
 .records-state, .records-empty { min-height: 320px; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; color: var(--muted); }
 .records-empty > svg { width: 36px; height: 36px; color: var(--accent); margin-bottom: 17px; }
@@ -63,6 +69,7 @@
 }
 @media (max-width: 700px) {
   .records-heading { align-items: flex-start; }
+  .records-filters { padding: 16px 17px; }
   .records-list { padding: 4px 17px; }
   .records-empty { min-height: 300px; }
   .record-row { grid-template-columns: 38px minmax(0,1fr) auto; gap: 10px; padding: 14px 0; }
