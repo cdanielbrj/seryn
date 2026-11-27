@@ -3,17 +3,16 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
-using Seryn.Server.Modules.Auth.Contracts;
-using Seryn.Server.Modules.Auth.Domain;
+using Seryn.Server.Lumen.SerynLink.Contracts;
 using Seryn.Server.Persistence;
 
-namespace Seryn.Server.Modules.Auth.Application;
+namespace Seryn.Server.Lumen.SerynLink;
 
-public sealed class ApiTokenService(SerynDbContext db, TimeProvider clock)
+public sealed class SerynLinkService(SerynDbContext db, TimeProvider clock)
 {
     private const string TokenPrefix = "seryn_pat_";
 
-    public async Task<List<ApiTokenItem>> List()
+    public async Task<List<SerynLinkItem>> List()
     {
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         return await db.ApiTokens.AsNoTracking()
@@ -21,15 +20,15 @@ public sealed class ApiTokenService(SerynDbContext db, TimeProvider clock)
             .OrderBy(x => x.Name).Select(x => ToItem(x)).ToListAsync();
     }
 
-    public async Task<(ApiTokenCreated? Value, Dictionary<string, string[]>? Errors)> Create(ApiTokenRequest request)
+    public async Task<(SerynLinkCreated? Value, Dictionary<string, string[]>? Errors)> Create(SerynLinkRequest request)
     {
         var errors = new Dictionary<string, string[]>();
         var name = request.Nome?.Trim() ?? "";
         if (name.Length is < 1 or > 80) errors["nome"] = ["Informe um nome entre 1 e 80 caracteres."];
         var scopes = (request.Escopos ?? []).Distinct(StringComparer.Ordinal).Order().ToArray();
-        if (scopes.Length == 0 || scopes.Except(ApiTokenScopes.All, StringComparer.Ordinal).Any())
+        if (scopes.Length == 0 || scopes.Except(SerynLinkScopes.All, StringComparer.Ordinal).Any())
             errors["escopos"] = ["Escolha ao menos um escopo válido: data:read, data:write ou data:delete."];
-        if (scopes.Contains(ApiTokenScopes.Delete) && !scopes.Contains(ApiTokenScopes.Write))
+        if (scopes.Contains(SerynLinkScopes.Delete) && !scopes.Contains(SerynLinkScopes.Write))
             errors["escopos"] = ["data:delete requer também data:write."];
         long? expires = null;
         if (!string.IsNullOrWhiteSpace(request.ExpiraEm))
@@ -42,7 +41,7 @@ public sealed class ApiTokenService(SerynDbContext db, TimeProvider clock)
         if (errors.Count > 0) return (null, errors);
         var now = clock.GetUtcNow();
         if (await db.ApiTokens.CountAsync(x => x.RevokedAtUnix == null && (x.ExpiresAtUnix == null || x.ExpiresAtUnix > now.ToUnixTimeSeconds())) >= 20)
-            return (null, new() { ["tokens"] = ["Revogue um token antes de criar outro; o limite é 20 tokens ativos."] });
+            return (null, new() { ["serynLinks"] = ["Revogue um Seryn Link antes de criar outro; o limite é 20 acessos ativos."] });
 
         var secret = TokenPrefix + WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
         var entity = new ApiToken
@@ -71,7 +70,7 @@ public sealed class ApiTokenService(SerynDbContext db, TimeProvider clock)
 
     public static string Hash(string token) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
     private static string[] ScopeArray(string scopes) => scopes.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-    private static ApiTokenItem ToItem(ApiToken x) => new(x.Id, x.Name, x.DisplayPrefix, ScopeArray(x.Scopes), FormatRequired(x.CreatedAtUnix), Format(x.ExpiresAtUnix), Format(x.LastUsedAtUnix));
+    private static SerynLinkItem ToItem(ApiToken x) => new(x.Id, x.Name, x.DisplayPrefix, ScopeArray(x.Scopes), FormatRequired(x.CreatedAtUnix), Format(x.ExpiresAtUnix), Format(x.LastUsedAtUnix));
     private static string FormatRequired(long value) => DateTimeOffset.FromUnixTimeSeconds(value).ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
     private static string? Format(long? value) => value is null ? null : DateTimeOffset.FromUnixTimeSeconds(value.Value).ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
 }

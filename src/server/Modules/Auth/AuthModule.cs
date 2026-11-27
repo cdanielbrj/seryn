@@ -18,7 +18,6 @@ public static class AuthModule
         services.AddScoped<AdminProvisioner>();
         services.AddSingleton<AuthGate>();
         services.AddScoped<AuthService>();
-        services.AddScoped<ApiTokenService>();
         services.AddScoped<SessionService>();
         services.AddScoped<IPasswordHasher<LocalUser>, PasswordHasher<LocalUser>>();
         services.Configure<PasswordHasherOptions>(options => options.IterationCount = 210_000);
@@ -72,18 +71,6 @@ public static class AuthModule
             return Results.NoContent();
         }).RequireAuthorization("admin-session").WithName("Logout").WithSummary("Revoga a sessão administrativa atual");
 
-        var tokens = auth.MapGroup("/tokens").RequireAuthorization("admin-session");
-        tokens.MapGet("/", (ApiTokenService service) => service.List())
-            .WithName("ListApiTokens").WithSummary("Lista tokens de integração ativos");
-        tokens.MapPost("/", async (ApiTokenRequest request, ApiTokenService service) =>
-        {
-            var result = await service.Create(request);
-            return result.Errors is null ? Results.Created($"./{result.Value!.Id}", result.Value) : Results.ValidationProblem(result.Errors);
-        }).WithName("CreateApiToken").WithSummary("Cria um token de integração")
-            .WithDescription("O segredo é retornado uma única vez. Os escopos não podem ser alterados depois da criação.");
-        tokens.MapDelete("/{id:guid}", async (Guid id, ApiTokenService service) =>
-            await service.Revoke(id) ? Results.NoContent() : Results.Problem(statusCode: 404, title: "Token não encontrado."))
-            .WithName("RevokeApiToken").WithSummary("Revoga um token de integração");
     }
 
 }

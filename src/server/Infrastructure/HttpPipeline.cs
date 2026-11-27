@@ -54,7 +54,7 @@ public static class HttpPipeline
     private static async Task ValidateAntiforgery(HttpContext context, RequestDelegate next)
     {
         if (context.Request.Path.StartsWithSegments("/api") &&
-            !context.User.HasClaim(claim => claim.Type == "api_token") &&
+            !context.User.HasClaim(claim => claim.Type == "seryn_link") &&
             !HttpMethods.IsGet(context.Request.Method) &&
             !HttpMethods.IsHead(context.Request.Method) &&
             !HttpMethods.IsOptions(context.Request.Method))

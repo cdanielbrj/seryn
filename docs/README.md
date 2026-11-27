@@ -10,6 +10,7 @@ This directory is the canonical documentation hub for Seryn.
 - [Deployment](deployment/README.md): Docker, configuration, reverse proxy, backup, and Unraid operations.
 - [Development](development/README.md): local environment, testing, and contribution workflow.
 - [Validation](validation/README.md): dated evidence for completed validation milestones.
+- [Lumen](../lumen/README.md): portable model-integration architecture, contracts, and security boundaries shared by host implementations.
 
 ## Documentation policy
 
@@ -20,5 +21,6 @@ This directory is the canonical documentation hub for Seryn.
 - Validation records are historical evidence and are not updated to describe later phases.
 - READMEs close to source code explain how to work within that area and link back to canonical decisions.
 - Agent workflows live under `.agents/skills`; they reference this documentation rather than duplicating it.
+- The repository-root `lumen/` directory is intentionally outside this tree so it can be carried to another host; it is canonical for the portable pattern, while Seryn-specific decisions remain here.
 
 Repository documentation is written in English. Product UI and public contracts remain in Brazilian Portuguese where required by the specification.

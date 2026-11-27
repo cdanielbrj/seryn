@@ -1,4 +1,5 @@
 using Seryn.Server.Infrastructure;
+using Seryn.Server.Lumen;
 using Seryn.Server.Modules.Auth;
 using Seryn.Server.Modules.Classifications;
 using Seryn.Server.Modules.Projections;
@@ -37,6 +38,7 @@ builder.Services
     .AddObjectivesModule()
     .AddImportModule()
     .AddExportModule()
+    .AddLumen()
     .AddProjectionsModule();
 
 var app = builder.Build();
@@ -50,6 +52,7 @@ api.MapRecordsModule();
 api.MapObjectivesModule();
 api.MapImportModule();
 api.MapExportModule();
+api.MapLumen();
 api.MapProjectionsModule();
 api.MapGet("/foundation", () => new { phase = 2, financialDataAvailable = true }).WithTags("Fundação").RequireAuthorization("data:read")
     .WithName("GetFoundationStatus").WithSummary("Informa as capacidades fundamentais disponíveis");

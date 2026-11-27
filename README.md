@@ -4,7 +4,7 @@ Seryn is a self-hosted planner for expected income and expenses. It stores origi
 
 Current version: **0.3.0**.
 
-Available today: secure single-administrator provisioning, local sessions, scoped integration tokens, editable classifications, financial-record CRUD, deterministic projections, segmented analyses, independent objectives, a data-backed responsive dashboard, light/dark presentation, and transactional XLSX/XLSM user-data portability with merge and complete replacement flows. Host-level backup remains a separate future increment.
+Available today: secure single-administrator provisioning, local sessions, Lumen integrations with encrypted model-provider connections and scoped API access, editable classifications, financial-record CRUD, deterministic projections, segmented analyses, independent objectives, a data-backed responsive dashboard, light/dark presentation, and transactional XLSX/XLSM user-data portability with merge and complete replacement flows. Host-level backup remains a separate future increment.
 
 ## Quick start
 
@@ -27,6 +27,7 @@ The provisioning variables initialize a new database; they never reset an admini
 - [Product specification](docs/product/SERYN_SPEC.md)
 - [Documentation index](docs/README.md)
 - [Architecture and ADRs](docs/architecture/README.md)
+- [Portable Lumen specification](lumen/README.md)
 - [Design references](docs/design/README.md)
 - [Deployment](docs/deployment/README.md)
 - [Local development](docs/development/README.md)

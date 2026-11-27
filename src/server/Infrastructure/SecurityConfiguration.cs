@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Seryn.Server.Persistence;
+using Seryn.Server.Lumen.SerynLink;
 using Seryn.Server.Modules.Auth.Application;
-using Seryn.Server.Modules.Auth.Domain;
 
 namespace Seryn.Server.Infrastructure;
 
@@ -41,7 +41,7 @@ public static class SecurityConfiguration
         }).AddPolicyScheme("SerynAuthentication", null, options =>
         {
             options.ForwardDefaultSelector = context => context.Request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-                ? ApiTokenAuthenticationHandler.SchemeName
+                ? SerynLinkAuthenticationHandler.SchemeName
                 : CookieAuthenticationDefaults.AuthenticationScheme;
         }).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
         {
@@ -54,14 +54,14 @@ public static class SecurityConfiguration
             options.Events.OnRedirectToLogin = context => Results.Problem(statusCode: 401, title: "Entre para continuar.").ExecuteAsync(context.HttpContext);
             options.Events.OnRedirectToAccessDenied = context => Results.Problem(statusCode: 403, title: "Acesso negado.").ExecuteAsync(context.HttpContext);
             options.Events.OnValidatePrincipal = ValidateSession;
-        }).AddScheme<AuthenticationSchemeOptions, ApiTokenAuthenticationHandler>(ApiTokenAuthenticationHandler.SchemeName, null);
+        }).AddScheme<AuthenticationSchemeOptions, SerynLinkAuthenticationHandler>(SerynLinkAuthenticationHandler.SchemeName, null);
         builder.Services.AddAuthorization(options =>
         {
             options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
             options.AddPolicy("admin-session", policy => policy.AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme).RequireAuthenticatedUser());
-            AddDataPolicy(options, ApiTokenScopes.Read);
-            AddDataPolicy(options, ApiTokenScopes.Write);
-            AddDataPolicy(options, ApiTokenScopes.Delete);
+            AddDataPolicy(options, SerynLinkScopes.Read);
+            AddDataPolicy(options, SerynLinkScopes.Write);
+            AddDataPolicy(options, SerynLinkScopes.Delete);
         });
         builder.Services.AddAntiforgery(options =>
         {
@@ -81,7 +81,7 @@ public static class SecurityConfiguration
             }));
             options.AddPolicy("api", context =>
             {
-                var partition = context.User.FindFirstValue("api_token") ?? "browser-session";
+                var partition = context.User.FindFirstValue("seryn_link") ?? "browser-session";
                 return RateLimitPartition.GetFixedWindowLimiter(partition, _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = apiLimit,

@@ -44,6 +44,19 @@ public sealed class ApiToken
     public long? RevokedAtUnix { get; set; }
 }
 
+public sealed class OpticalLinkConnection
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Provider { get; set; } = "";
+    public string Model { get; set; } = "";
+    public string ProtectedApiKey { get; set; } = "";
+    public string KeyHint { get; set; } = "";
+    public bool IsDefault { get; set; }
+    public long CreatedAtUnix { get; set; }
+    public long UpdatedAtUnix { get; set; }
+}
+
 public sealed class IdempotencyRecord
 {
     public long Id { get; set; }
@@ -63,6 +76,7 @@ public sealed class SerynDbContext(DbContextOptions<SerynDbContext> options) : D
     public DbSet<LoginSession> Sessions => Set<LoginSession>();
     public DbSet<WorkbookImportPreview> WorkbookImportPreviews => Set<WorkbookImportPreview>();
     public DbSet<ApiToken> ApiTokens => Set<ApiToken>();
+    public DbSet<OpticalLinkConnection> OpticalLinkConnections => Set<OpticalLinkConnection>();
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
     public DbSet<FinancialType> FinancialTypes => Set<FinancialType>();
     public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
@@ -73,6 +87,8 @@ public sealed class SerynDbContext(DbContextOptions<SerynDbContext> options) : D
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ConfigureAuth();
+        modelBuilder.ConfigureSerynLink();
+        modelBuilder.ConfigureOpticalLink();
         modelBuilder.ConfigureClassifications();
         modelBuilder.ConfigureFinancialRecords();
         modelBuilder.ConfigureObjectives();
