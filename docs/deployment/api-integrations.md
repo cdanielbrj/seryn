@@ -9,6 +9,8 @@ Lumen separates inbound application access from outbound model-provider connecti
 
 An Optical Link allows Seryn's chat to send the user's prompt and the minimum tool results required for the conversation to the configured external provider. Review that provider's retention, training, and regional policies before connecting it. A provider credential does not grant inbound API access, and a Seryn Link does not grant access to provider credentials.
 
+The OpenRouter adapter attributes requests to the public Seryn project by sending the canonical repository URL and the application title in OpenRouter's attribution headers. These headers identify the originating software, not the installation, administrator, credential, prompt, or financial data. OpenRouter may use this attribution in application analytics and public rankings.
+
 ## Authentication and scopes
 
 Send the token in every request:
