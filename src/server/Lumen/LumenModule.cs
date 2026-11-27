@@ -5,6 +5,7 @@ using Seryn.Server.Lumen.Core.Tools;
 using Seryn.Server.Lumen.OpticalLink.Connections;
 using Seryn.Server.Lumen.OpticalLink.Contracts;
 using Seryn.Server.Lumen.OpticalLink.Providers;
+using Seryn.Server.Lumen.Persona;
 using Seryn.Server.Lumen.SerynLink;
 using Seryn.Server.Lumen.Tools;
 
@@ -17,6 +18,7 @@ public static class LumenModule
         services.AddSingleton<ChatGate>();
         services.AddScoped<OpticalConnectionService>();
         services.AddScoped<ChatService>();
+        services.AddSingleton<ILumenPersona, SerynPersona>();
         services.AddScoped<ILumenToolCatalog, SerynToolCatalog>();
         services.AddScoped<SerynLinkService>();
         services.AddHttpClient<IModelProvider, OpenRouterProvider>(client => client.Timeout = TimeSpan.FromSeconds(45))

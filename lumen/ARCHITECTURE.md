@@ -44,6 +44,7 @@ The host supplies:
 - user interface and deployment integration.
 
 Tools never bypass the host application layer to write directly to persistence.
+Core receives persona instructions through a host contract and defines no shared voice, identity, or judgment style. Each host owns and tests its persona independently.
 
 ## Dependency direction
 
@@ -64,6 +65,7 @@ Seryn keeps Lumen inside its single ASP.NET Core process and React application:
 src/server/Lumen/
 ├── Core/
 ├── OpticalLink/
+├── Persona/
 ├── SerynLink/
 └── Tools/
 
