@@ -14,7 +14,7 @@ public sealed class IdempotencyMiddleware(RequestDelegate next)
     public async Task Invoke(HttpContext context, SerynDbContext db, TimeProvider clock, AsyncKeyedLock locks)
     {
         if (!HttpMethods.IsPost(context.Request.Method) ||
-            !context.User.HasClaim(claim => claim.Type == "api_token") ||
+            !context.User.HasClaim(claim => claim.Type == "seryn_link") ||
             !context.Request.Headers.TryGetValue(Header, out var values))
         {
             await next(context);
@@ -29,7 +29,7 @@ public sealed class IdempotencyMiddleware(RequestDelegate next)
             return;
         }
 
-        var tokenId = Guid.Parse(context.User.FindFirst("api_token")!.Value);
+        var tokenId = Guid.Parse(context.User.FindFirst("seryn_link")!.Value);
         using (await locks.Acquire($"idempotency:{tokenId:N}:{key}", context.RequestAborted))
             await Process(context, db, clock, tokenId, key);
     }

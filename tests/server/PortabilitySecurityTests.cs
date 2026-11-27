@@ -7,6 +7,7 @@ using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Seryn.Server.Modules.Auth.Contracts;
+using Seryn.Server.Lumen.SerynLink.Contracts;
 using Seryn.Server.Modules.Classifications.Contracts;
 using Seryn.Server.Modules.Import.Contracts;
 using Seryn.Server.Modules.Objectives.Contracts;
@@ -63,7 +64,7 @@ public sealed class PortabilitySecurityTests : IDisposable
         await using var app = new TestApplication(directory);
         using var client = app.CreateClient();
         await Login(client);
-        Assert.Equal(HttpStatusCode.Created, (await Send(client, HttpMethod.Post, "/api/v1/auth/tokens", new { nome = "Preservar", escopos = new[] { "data:read" } })).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await Send(client, HttpMethod.Post, "/api/v1/lumen/seryn-links", new { nome = "Preservar", escopos = new[] { "data:read" } })).StatusCode);
         Assert.Equal(HttpStatusCode.Created, (await Send(client, HttpMethod.Post, "/api/v1/types", new { nome = "Original" })).StatusCode);
         Assert.Equal(HttpStatusCode.Created, (await Send(client, HttpMethod.Post, "/api/v1/objectives", new { nome = "Objetivo original", valorEstimadoCentavos = 10000, interesse = "listado", prioridade = 0 })).StatusCode);
         var payload = Convert.ToBase64String(Workbook("Objetivo novo"));
@@ -77,7 +78,7 @@ public sealed class PortabilitySecurityTests : IDisposable
         Assert.Equal("Original", (await client.GetFromJsonAsync<List<ClassificationItem>>("/api/v1/types"))!.Single().Nome);
         Assert.Equal("Objetivo original", (await client.GetFromJsonAsync<List<ObjectiveItem>>("/api/v1/objectives"))!.Single().Nome);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/auth/session")).StatusCode);
-        Assert.Single((await client.GetFromJsonAsync<List<ApiTokenItem>>("/api/v1/auth/tokens"))!);
+        Assert.Single((await client.GetFromJsonAsync<List<SerynLinkItem>>("/api/v1/lumen/seryn-links"))!);
     }
 
     [Fact]

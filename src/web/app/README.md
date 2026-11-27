@@ -35,3 +35,5 @@ root components -> other root components and component-local helpers
 Routes do not call the HTTP client directly. Root components never import product modules. Avoid cross-module imports unless a capability intentionally exposes an application-level API. Promote code out of a module only after it has independent semantics and multiple real consumers.
 
 React files define semantic structure and behavior but never import a concrete theme. See [ADR-008](../../../docs/architecture/adr/ADR-008-FRONTEND-APPLICATION-ARCHITECTURE.md) and the [theme guide](../themes/README.md).
+
+`modules/lumen` is Seryn's UI implementation of the portable [Lumen architecture](../../../lumen/README.md). It remains a host module because its routes, labels, disclosure, and connection administration are Seryn-specific; see its [local guide](modules/lumen/README.md).

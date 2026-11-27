@@ -2,7 +2,12 @@
 
 Seryn exposes its versioned contract at `/api/v1` on the same HTTPS origin as the web application. The authenticated OpenAPI document is available at `/api/v1/openapi/v1.json`.
 
-Create and revoke integration tokens in **Settings → Integration tokens**. Copy a new secret immediately; Seryn shows it only once and stores only its hash. Prefer a 90-day expiration and the minimum scopes required by the client.
+Lumen separates inbound application access from outbound model-provider connections:
+
+- Create and revoke **Seryn Links** in **Settings → Integrations → Seryn Link**. Copy a new secret immediately; Seryn shows it only once and stores only its hash. Prefer a 90-day expiration and the minimum scopes required by the client.
+- Configure model-provider credentials in **Settings → Integrations → Optical Link**. Seryn encrypts these recoverable credentials at rest and never returns their complete value after creation. The current adapter supports OpenRouter and a user-selected default model.
+
+An Optical Link allows Seryn's chat to send the user's prompt and the minimum tool results required for the conversation to the configured external provider. Review that provider's retention, training, and regional policies before connecting it. A provider credential does not grant inbound API access, and a Seryn Link does not grant access to provider credentials.
 
 ## Authentication and scopes
 
@@ -14,10 +19,10 @@ Authorization: Bearer seryn_pat_<secret>
 
 Available scopes are `data:read`, `data:write`, and `data:delete`. Delete requires write. Browser sessions satisfy data policies for the first-party UI, while integration tokens must carry the explicit scope.
 
-Tokens never authorize:
+Seryn Links never authorize:
 
 - workbook export, preview, import, or complete replacement;
-- token creation, listing, or revocation;
+- Seryn Link or Optical Link creation, listing, update, or revocation;
 - backup or restore operations.
 
 Those operations require the interactive administrator session and CSRF protection. Existing classification rules still apply: a token cannot delete an in-use type or payment method, nor a category whose children must first be reorganized.

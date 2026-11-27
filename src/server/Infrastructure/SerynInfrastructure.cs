@@ -46,8 +46,8 @@ public static class SerynInfrastructure
             {
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer",
-                BearerFormat = "Seryn personal access token",
-                Description = "Token pessoal revogável com escopos data:read, data:write e data:delete. Portabilidade e administração exigem sessão interativa."
+                BearerFormat = "Seryn Link token",
+                Description = "Seryn Link revogável com escopos data:read, data:write e data:delete. Portabilidade e administração exigem sessão interativa."
             };
             return Task.CompletedTask;
         }));

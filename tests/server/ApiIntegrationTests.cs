@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Seryn.Server.Lumen.SerynLink.Contracts;
 using Seryn.Server.Modules.Auth.Contracts;
 using Seryn.Server.Modules.Classifications.Contracts;
 using Seryn.Server.Modules.Records.Contracts;
@@ -24,7 +25,7 @@ public sealed class ApiIntegrationTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/v1/records")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/v1/types", new { nome = "Compra" })).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/portability/export.xlsx")).StatusCode);
-        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/auth/tokens")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/lumen/seryn-links")).StatusCode);
         var openApi = await client.GetStringAsync("/api/v1/openapi/v1.json");
         Assert.Contains("bearerToken", openApi);
         Assert.Contains("ListRecords", openApi);
@@ -45,7 +46,7 @@ public sealed class ApiIntegrationTests : IDisposable
         var type = (await typeResponse.Content.ReadFromJsonAsync<ClassificationItem>())!;
         Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"/api/v1/types/{type.Id}")).StatusCode);
 
-        Assert.Equal(HttpStatusCode.NoContent, (await SendAdmin(admin, HttpMethod.Delete, $"/api/v1/auth/tokens/{created.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await SendAdmin(admin, HttpMethod.Delete, $"/api/v1/lumen/seryn-links/{created.Id}")).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/v1/records")).StatusCode);
     }
 
@@ -100,8 +101,9 @@ public sealed class ApiIntegrationTests : IDisposable
         await using var app = new TestApplication(directory);
         using var client = app.CreateClient();
         await Login(client);
-        Assert.Equal(HttpStatusCode.BadRequest, (await SendAdmin(client, HttpMethod.Post, "/api/v1/auth/tokens", new { nome = "Inválido", escopos = new[] { "admin" } })).StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, (await SendAdmin(client, HttpMethod.Post, "/api/v1/auth/tokens", new { nome = "Inválido", escopos = new[] { "data:delete" } })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/v1/auth/tokens")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await SendAdmin(client, HttpMethod.Post, "/api/v1/lumen/seryn-links", new { nome = "Inválido", escopos = new[] { "admin" } })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await SendAdmin(client, HttpMethod.Post, "/api/v1/lumen/seryn-links", new { nome = "Inválido", escopos = new[] { "data:delete" } })).StatusCode);
     }
 
     private static HttpClient TokenClient(TestApplication app, string token)
@@ -111,11 +113,11 @@ public sealed class ApiIntegrationTests : IDisposable
         return client;
     }
 
-    private static async Task<ApiTokenCreated> CreateToken(HttpClient client, string name, string[] scopes)
+    private static async Task<SerynLinkCreated> CreateToken(HttpClient client, string name, string[] scopes)
     {
-        var response = await SendAdmin(client, HttpMethod.Post, "/api/v1/auth/tokens", new { nome = name, escopos = scopes });
+        var response = await SendAdmin(client, HttpMethod.Post, "/api/v1/lumen/seryn-links", new { nome = name, escopos = scopes });
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        return (await response.Content.ReadFromJsonAsync<ApiTokenCreated>())!;
+        return (await response.Content.ReadFromJsonAsync<SerynLinkCreated>())!;
     }
 
     private static async Task<ClassificationItem> CreateClassification(HttpClient client, string path, string name)

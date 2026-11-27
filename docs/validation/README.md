@@ -4,5 +4,6 @@ Validation records preserve dated evidence for completed milestones. They descri
 
 - [Phase 1](PHASE_1.md)
 - [Version 0.3.0 portability](V0.3.0-PORTABILITY.md)
+- [Version 0.4.0 Lumen integrations](V0.4.0-LUMEN.md)
 
 Current validation commands live in [development testing documentation](../development/testing.md).

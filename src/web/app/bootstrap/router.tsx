@@ -7,13 +7,15 @@ import { DashboardRoute } from '@/modules/dashboard/routes/DashboardRoute'
 import { RecordFormRoute } from '@/modules/records/routes/RecordFormRoute'
 import { RecordsRoute } from '@/modules/records/routes/RecordsRoute'
 import { PreferencesRoute } from '@/modules/settings/routes/PreferencesRoute'
-import { ApiTokensRoute } from '@/modules/settings/routes/ApiTokensRoute'
+import { SerynLinkRoute } from '@/modules/lumen/seryn-link/SerynLinkRoute'
 import { SessionsRoute } from '@/modules/settings/routes/SessionsRoute'
 import { AnalysesRoute } from '@/modules/analyses/routes/AnalysesRoute'
 import { ObjectiveFormRoute } from '@/modules/objectives/routes/ObjectiveFormRoute'
 import { ObjectivesRoute } from '@/modules/objectives/routes/ObjectivesRoute'
 import { ExportRoute } from '@/modules/portability/routes/ExportRoute'
 import { ImportRoute } from '@/modules/portability/routes/ImportRoute'
+import { ChatRoute } from '@/modules/lumen/chat/ChatRoute'
+import { OpticalConnectionsRoute } from '@/modules/lumen/optical-link/OpticalConnectionsRoute'
 
 export function AppRouter({ username, onLogout }: { username: string; onLogout: () => void }) {
   return <Routes>
@@ -22,6 +24,7 @@ export function AppRouter({ username, onLogout }: { username: string; onLogout: 
     <Route path="/registros/novo" element={<RecordFormRoute />} />
     <Route path="/registros/:id/editar" element={<RecordFormRoute />} />
     <Route path="/analises" element={<AnalysesRoute />} />
+    <Route path="/conversa" element={<ChatRoute />} />
     <Route path="/objetivos" element={<ObjectivesRoute />} />
     <Route path="/objetivos/novo" element={<ObjectiveFormRoute />} />
     <Route path="/objetivos/:id/editar" element={<ObjectiveFormRoute />} />
@@ -32,7 +35,8 @@ export function AppRouter({ username, onLogout }: { username: string; onLogout: 
     <Route path="/importar" element={<ImportRoute />} />
     <Route path="/importar-exportar" element={<Navigate to="/exportar" replace />} />
     <Route path="/ajustes" element={<PreferencesRoute username={username} onLogout={onLogout} />} />
-    <Route path="/ajustes/tokens" element={<ApiTokensRoute />} />
+    <Route path="/ajustes/integracoes/seryn-link" element={<SerynLinkRoute />} />
+    <Route path="/ajustes/integracoes/optical-link" element={<OpticalConnectionsRoute />} />
     <Route path="/ajustes/sessoes" element={<SessionsRoute />} />
     <Route path="*" element={<UnavailableState title="Página não encontrada" icon={Home} description="Este endereço não existe na Seryn." detail="Use a navegação para voltar ao seu planejamento." />} />
   </Routes>

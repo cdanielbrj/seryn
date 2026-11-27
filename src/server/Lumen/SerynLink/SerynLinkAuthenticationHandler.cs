@@ -3,19 +3,18 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Seryn.Server.Modules.Auth.Domain;
 using Seryn.Server.Persistence;
 
-namespace Seryn.Server.Modules.Auth.Application;
+namespace Seryn.Server.Lumen.SerynLink;
 
-public sealed class ApiTokenAuthenticationHandler(
+public sealed class SerynLinkAuthenticationHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
     SerynDbContext db,
     TimeProvider clock) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    public const string SchemeName = "SerynApiToken";
+    public const string SchemeName = "SerynLink";
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -25,7 +24,7 @@ public sealed class ApiTokenAuthenticationHandler(
         var raw = authorization[7..].Trim();
         if (!raw.StartsWith("seryn_pat_", StringComparison.Ordinal) || raw.Length > 128)
             return AuthenticateResult.Fail("Token inválido.");
-        var hash = ApiTokenService.Hash(raw);
+        var hash = SerynLinkService.Hash(raw);
         var now = clock.GetUtcNow().ToUnixTimeSeconds();
         var token = await db.ApiTokens.SingleOrDefaultAsync(x => x.TokenHash == hash);
         if (token is null || token.RevokedAtUnix is not null || token.ExpiresAtUnix <= now)
@@ -35,7 +34,7 @@ public sealed class ApiTokenAuthenticationHandler(
         {
             new(ClaimTypes.NameIdentifier, token.Id.ToString()),
             new(ClaimTypes.Name, token.Name),
-            new("api_token", token.Id.ToString())
+            new("seryn_link", token.Id.ToString())
         };
         claims.AddRange(token.Scopes.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(scope => new Claim("scope", scope)));
         if (token.LastUsedAtUnix is null || token.LastUsedAtUnix < now - 3600)

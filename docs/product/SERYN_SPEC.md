@@ -1,7 +1,7 @@
 # Seryn — Product, architecture, and implementation specification
 
-> **Status:** approved product baseline; consolidated technical stack, analyses, objectives, and user-data portability (revision 6)
-> **Reference date:** November 21, 2026
+> **Status:** approved product baseline; consolidated technical stack, analyses, objectives, user-data portability, and Lumen integrations (revision 7)
+> **Reference date:** November 26, 2026
 > **Initial product language:** Brazilian Portuguese (`pt-BR`); API v1 identifiers remain stable independently of future UI localization
 > **Audience:** Codex and project contributors  
 > **Visual source of truth:** `docs/design/prototypes/seryn_mock_v2.html` and the reference images in the same directory
@@ -69,11 +69,30 @@ All values are user-defined forecasts, not completed transactions. Do not reconc
 - Bank accounts, balances, banking synchronization/Open Finance, cards, or invoices.
 - Payment confirmation, receipt confirmation, collections, due-date notifications, or reconciliation.
 - A dedicated investment/wealth module. An investment-related forecast is an ordinary record.
-- AI, OCR, third-party integrations, multiple currencies, or currency conversion.
+- OCR, arbitrary third-party data synchronization, multiple currencies, or currency conversion.
 - Complex multi-user permissions, teams, or public sharing.
 - Rules based on type/category text.
 - Different installment amounts inside one record; use separate records for different values.
 - Extra charts or financial indicators absent from the approved mock.
+
+### Approved extension — Lumen integrations
+
+Lumen provides Seryn's model-mediated integration architecture without making Seryn itself an inference service. Its portable boundaries and contracts are defined in the root [Lumen specification](../../lumen/README.md).
+
+- **Optical Link** stores one or more encrypted, user-configured model-provider connections. The initial adapter uses OpenRouter, but provider-specific request and response details stay outside the host-neutral conversation contract.
+- Each connection defines a default model preference. A new conversation uses that preference without prompting; the user may choose a different model for that conversation without changing the Optical Link. Changing models after messages exist starts a new conversation, and responses identify the model that actually answered.
+- The authenticated chat sends bounded context to the selected external provider. Seryn does not perform model inference and must disclose that relevant conversation and tool context leave the installation.
+- Models may request only explicitly registered host tools. Seryn executes those tools through the same application services and validation used elsewhere; a provider never receives database access or arbitrary HTTP execution.
+- Initial conversational tools are read-only. They may inspect expected records and derived projections but must not create, edit, or delete product data.
+- Exact financial calculations remain deterministic and host-owned. Model output may explain derived results but is never persisted as a financial source of truth and must not claim actual spending, available cash, payment state, or affordability.
+- Conversations are ephemeral and bounded in this increment. Seryn does not persist chat history or silently reuse it as product data.
+- Each conversation uses a random ephemeral identifier consistently across provider and tool rounds. A new conversation or model change renews it; it is never persisted or derived from user or financial data.
+- Seryn's persona is host-specific rather than a shared Lumen personality. She is observant, lucid, direct without being cold, and subtly opinionated. She may question, judge, recommend, discourage, and prioritize personal choices when the available data supports the assessment, without becoming moralistic, condescending, or aggressive.
+- Answers lead with the conclusion, remain concise by default, and expand when useful or requested. Seryn distinguishes tool-derived facts from her interpretation and from information still needed, asks as many grouped clarification questions as correctness requires, and avoids empty introductions, repeated disclaimers, catchphrases, artificial enthusiasm, and automatic offers of further help.
+- Tool-calculated values are exact for the current data, filters, and period. Interpretations and recommendations may acknowledge uncertainty, but the model must not approximate, replace, or invent available calculations. Forecast wording need not be repeated when the response already communicates it and the caveat would not change the conclusion.
+- Seryn returns text only in this increment and never promises spoken audio or video generation. She offers images or charts only when the host exposes a visual tool; no such tool exists in this increment. Voice output remains a future host capability rather than a persona or provider assumption.
+- **Seryn Link** is Seryn's inbound Application Link. It exposes the revocable scoped Bearer credentials defined by ADR-012 for external applications and agents, independently from interactive administrator authentication.
+- Lumen endpoints live below `/api/v1/lumen`; Optical Link and Seryn Link credential administration require the interactive administrator session.
 
 ### Approved extension — analyses
 
@@ -336,7 +355,7 @@ Suggested repository structure keeps one server project and one test project, wi
 
 ### Shared application flow
 
-UI, file import, and future integrations must all use the same application service and validation. Import converts rows into the same internal command and writes transactionally; it never bypasses rules with direct database writes. Scoped API credentials are supported; Aira-specific and other external adapters remain outside the current scope.
+UI, file import, and integrations must all use the same application service and validation. Import converts rows into the same internal command and writes transactionally; it never bypasses rules with direct database writes. Scoped Seryn Link credentials are supported; product-specific external adapters beyond the approved Lumen boundaries remain outside the current scope.
 
 Reference REST surface:
 
@@ -351,8 +370,12 @@ GET                      /api/v1/projections?period=month|semester|year&referenc
 GET                      /api/v1/analyses?period=month|semester|year&reference=YYYY-MM&direction=all|income|expense&primary=category|payment|type&secondary=none|category|payment|type
 GET/POST                 /api/v1/objectives
 GET/PATCH/DELETE         /api/v1/objectives/{id}
-GET/POST                 /api/v1/auth/tokens
-DELETE                   /api/v1/auth/tokens/{id}
+GET                      /api/v1/lumen/chat/status
+POST                     /api/v1/lumen/chat
+GET/POST                 /api/v1/lumen/optical-links
+PATCH/DELETE             /api/v1/lumen/optical-links/{id}
+GET/POST                 /api/v1/lumen/seryn-links
+DELETE                   /api/v1/lumen/seryn-links/{id}
 GET                      /api/v1/portability/export.xlsx
 POST                     /api/v1/portability/workbook/preview
 POST                     /api/v1/portability/workbook/commit

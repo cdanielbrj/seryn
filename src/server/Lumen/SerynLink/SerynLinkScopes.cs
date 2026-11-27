@@ -1,6 +1,6 @@
-namespace Seryn.Server.Modules.Auth.Domain;
+namespace Seryn.Server.Lumen.SerynLink;
 
-public static class ApiTokenScopes
+public static class SerynLinkScopes
 {
     public const string Read = "data:read";
     public const string Write = "data:write";
