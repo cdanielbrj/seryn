@@ -47,6 +47,8 @@ public sealed class LumenChatTests : IDisposable
         Assert.Equal(0, reply.CostUsd);
         Assert.Equal("Bearer", handler.Authorization?.Scheme);
         Assert.Equal("sk-or-v1-test-secret", handler.Authorization?.Parameter);
+        Assert.Equal("https://github.com/cdanielbrj/seryn", handler.ApplicationUrl);
+        Assert.Equal("Seryn", handler.ApplicationTitle);
         using var payload = JsonDocument.Parse(handler.Body!);
         Assert.Equal("anthropic/test-model", payload.RootElement.GetProperty("model").GetString());
         Assert.Equal("5d26892e-5bd1-4d21-8d15-fbde519bd221", payload.RootElement.GetProperty("session_id").GetString());
@@ -121,11 +123,15 @@ public sealed class LumenChatTests : IDisposable
     private sealed class RecordingHandler(HttpResponseMessage response) : HttpMessageHandler
     {
         public AuthenticationHeaderValue? Authorization { get; private set; }
+        public string? ApplicationUrl { get; private set; }
+        public string? ApplicationTitle { get; private set; }
         public string? Body { get; private set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Authorization = request.Headers.Authorization;
+            ApplicationUrl = request.Headers.TryGetValues("HTTP-Referer", out var urls) ? urls.SingleOrDefault() : null;
+            ApplicationTitle = request.Headers.TryGetValues("X-OpenRouter-Title", out var titles) ? titles.SingleOrDefault() : null;
             Body = await request.Content!.ReadAsStringAsync(cancellationToken);
             return response;
         }

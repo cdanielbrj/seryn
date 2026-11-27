@@ -8,6 +8,8 @@ namespace Seryn.Server.Lumen.OpticalLink.Providers;
 
 internal sealed class OpenRouterProvider(HttpClient client, OpticalConnectionService connections, ILogger<OpenRouterProvider> logger) : IModelProvider
 {
+    private const string ApplicationUrl = "https://github.com/cdanielbrj/seryn";
+    private const string ApplicationTitle = "Seryn";
     private ResolvedOpticalConnection? connection;
 
     public async Task<ModelReply> Complete(IReadOnlyList<ConversationMessage> messages, IReadOnlyList<ToolDefinition> tools, string? model, string sessionId, CancellationToken cancellationToken)
@@ -17,6 +19,8 @@ internal sealed class OpenRouterProvider(HttpClient client, OpticalConnectionSer
         var selectedModel = string.IsNullOrWhiteSpace(model) ? connection.Model : model;
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", connection.ApiKey);
+        request.Headers.TryAddWithoutValidation("HTTP-Referer", ApplicationUrl);
+        request.Headers.TryAddWithoutValidation("X-OpenRouter-Title", ApplicationTitle);
         request.Content = JsonContent.Create(new
         {
             model = selectedModel,
